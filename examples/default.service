@@ -1,0 +1,8 @@
+[Unit]
+Name=Demo Service
+Description=This is a demo config file for SvcGuest.
+Documentation=https://github.com/Jamesits/SvcGuest
+
+[Service]
+Type=simple
+ExecStart=C:\Windows\System32\conhost.exe
