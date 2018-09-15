@@ -19,7 +19,6 @@ namespace SvcGuest
             while ((line = file.ReadLine()) != null)
             {
                 lineNum++;
-                Console.WriteLine(line);
                 line = line.Trim();
 
                 // comments
@@ -51,6 +50,7 @@ namespace SvcGuest
                     kvList[0] = kvList[0].Trim();
                     kvList[1] = kvList[1].Trim();
 
+                    // Systemd rule: if value is empty, clear the list; otherwise append to the list
                     if (!Config[currentSection].ContainsKey(kvList[0]))
                     {
                         Config[currentSection][kvList[0]] = new List<string>();
