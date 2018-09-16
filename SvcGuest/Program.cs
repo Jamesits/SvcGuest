@@ -44,6 +44,7 @@ namespace SvcGuest
         public void OnExecute()
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledException;
+            AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 
             var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (currentDirectory != null) Directory.SetCurrentDirectory(currentDirectory);
@@ -61,7 +62,7 @@ namespace SvcGuest
             if (IsImpersonatedProcess)
             {
                 Debug.WriteLine("Executing impersonation helper routine");
-                AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
+                
                 ExecConfig execConfig;
                 switch (ExecConfigLaunchType)
                 {
@@ -117,7 +118,13 @@ namespace SvcGuest
         private static void OnProcessExit(object sender, EventArgs e)
         {
             Debug.WriteLine("Being killed, cleaning up...");
-            Wrapper.Stop();
+            Wrapper?.Stop();
+
+            // shut down all child processes
+            foreach (var pid in ProgramWrapper.GetChildProcessIds(ProgramWrapper.SelfProcessId))
+            {
+                ProgramWrapper.QuitProcess(Process.GetProcessById(pid));
+            }
         }
 
         private static void CurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
