@@ -2,6 +2,8 @@
 
 Register any executable as a Windows service with a (partially) systemd-compatible unit config.
 
+If you do not want to build it yourself, binary releases are in the [releases](https://github.com/Jamesits/SvcGuest/releases) page.
+
 ## Usage
 
 You need a `your-program.service` config file first. An example can be found in the `examples` directory.
