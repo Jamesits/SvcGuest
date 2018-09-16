@@ -3,7 +3,6 @@ using System.Configuration.Install;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Runtime.Remoting.Channels;
 using System.ServiceProcess;
 using System.Threading;
 using McMaster.Extensions.CommandLineUtils;

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Management;
 using System.Timers;
 
 namespace SvcGuest
@@ -21,7 +19,6 @@ namespace SvcGuest
         private readonly int _launchIndex;
         private readonly IntPtr _identityToken;
 
-        public int SelfProcessId => Process.GetCurrentProcess().Id;
         public int ChildProcessId => _pi.dwProcessId;
 
         private readonly Timer _checkChildProcessTimer = new Timer()
@@ -69,24 +66,9 @@ namespace SvcGuest
             QuitProcess(cp);
         }
 
-        public IEnumerable<int> GetChildProcessIds()
-        {
-            List<int> children = new List<int>();
-            ManagementObjectSearcher mos = new ManagementObjectSearcher(
-                $"Select * From Win32_Process Where ParentProcessID={SelfProcessId}");
-
-            foreach (var o in mos.Get())
-            {
-                var mo = (ManagementObject) o;
-                children.Add(Convert.ToInt32(mo["ProcessID"]));
-            }
-
-            return children;
-        }
-
         public bool IfChildProcessAlive()
         {
-            return GetChildProcessIds().Contains(ChildProcessId);
+            return GetChildProcessIds(SelfProcessId).Contains(ChildProcessId);
         }
 
         private void OnCheckChildProcessTimer(object sender, EventArgs e)

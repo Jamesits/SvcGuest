@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+// ReSharper disable InconsistentNaming
+// ReSharper disable IdentifierTypo
+// ReSharper disable UnusedMember.Global
+// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable StringLiteralTypo
 
 namespace SvcGuest
 {
-    class Kernel32
+    internal class Kernel32
     {
         #region Structs
         public struct LUID
@@ -49,15 +54,9 @@ namespace SvcGuest
             public ushort[] e_res2;
             public uint e_lfanew;
 
-            private string _e_magic
-            {
-                get { return new string(e_magic); }
-            }
+            private string _e_magic => new string(e_magic);
 
-            public bool isValid
-            {
-                get { return _e_magic == "MZ"; }
-            }
+            public bool isValid => _e_magic == "MZ";
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -203,7 +202,7 @@ namespace SvcGuest
         #endregion Function
     }
 
-    class Advapi32
+    internal class Advapi32
     {
         #region Structs
         [StructLayout(LayoutKind.Sequential)]
@@ -232,7 +231,7 @@ namespace SvcGuest
         [DllImport("Advapi32.dll")]
         public static extern bool LookupPrivilegeValueA(string lpSystemName, string lpName, ref Kernel32.LUID lpLuid);
         [DllImport("advapi32.dll")]
-        public extern static bool DuplicateTokenEx(IntPtr hExistingToken, uint dwDesiredAccess, out SECURITY_ATTRIBUTES lpTokenAttributes, SECURITY_IMPERSONATION_LEVEL ImpersonationLevel, TOKEN_TYPE TokenType, out IntPtr phNewToken);
+        public static extern bool DuplicateTokenEx(IntPtr hExistingToken, uint dwDesiredAccess, out SECURITY_ATTRIBUTES lpTokenAttributes, SECURITY_IMPERSONATION_LEVEL ImpersonationLevel, TOKEN_TYPE TokenType, out IntPtr phNewToken);
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern bool CreateProcessAsUser(
@@ -251,7 +250,7 @@ namespace SvcGuest
         #endregion Functions
     }
 
-    class NtDll
+    internal class NtDll
     {
         #region Structs
         [StructLayout(LayoutKind.Sequential, Pack = 1)]

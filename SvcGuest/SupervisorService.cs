@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
@@ -115,6 +114,7 @@ namespace SvcGuest
 
         protected override void OnStop()
         {
+            Debug.WriteLine("Stopping service");
             // Update the service state to Stop Pending.  
             _serviceStatus.dwCurrentState = ServiceState.SERVICE_STOP_PENDING;
             _serviceStatus.dwWaitHint = ProgramWrapper.KillWaitMs;
@@ -123,6 +123,11 @@ namespace SvcGuest
             foreach (var wrapper in _execStartProgramPool)
             {
                 wrapper.Stop();
+            }
+
+            foreach (var pid in ProgramWrapper.GetChildProcessIds(ProgramWrapper.SelfProcessId))
+            {
+                ProgramWrapper.QuitProcess(Process.GetProcessById(pid));
             }
 
             base.OnStop();

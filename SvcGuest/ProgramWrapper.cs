@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Management;
 using Timer = System.Timers.Timer;
 
 namespace SvcGuest
@@ -30,8 +27,10 @@ namespace SvcGuest
 
         public const int KillWaitMs = 20000;
         protected const int LogMergeWindow = 5; // seconds
-        protected readonly string EventSourceName = Globals.ServiceName;
+        protected static readonly string EventSourceName = Globals.ServiceName;
         protected const string EventCategory = "Application";
+
+        public static int SelfProcessId => Process.GetCurrentProcess().Id;
 
         protected virtual void OnProgramExited(object sender, EventArgs e)
         {
@@ -55,7 +54,7 @@ namespace SvcGuest
 
         public abstract void Stop();
 
-        protected void QuitProcess(Process p)
+        public static void QuitProcess(Process p)
         {
             if (p.HasExited)
             {
@@ -156,6 +155,21 @@ namespace SvcGuest
 
                 LastLogEntry = null;
             }
+        }
+
+        public static IEnumerable<int> GetChildProcessIds(int processId)
+        {
+            List<int> children = new List<int>();
+            ManagementObjectSearcher mos = new ManagementObjectSearcher(
+                $"Select * From Win32_Process Where ParentProcessID={processId}");
+
+            foreach (var o in mos.Get())
+            {
+                var mo = (ManagementObject)o;
+                children.Add(Convert.ToInt32(mo["ProcessID"]));
+            }
+
+            return children;
         }
     }
 }
