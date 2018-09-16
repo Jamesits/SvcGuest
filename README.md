@@ -8,6 +8,7 @@ If you do not want to build it yourself, binary releases are in the [releases](h
 
 You need a `your-program.service` config file first. An example can be found in the `examples` directory.
 
+* Right click on `svcguest.exe` -> "Run as administrator" to install all units interactively
 * `svcguest.exe --install --config your-program.service` to register the service
 * `svcguest.exe --uninstall --config your-program.service` to remove the service
 * `svcguest.exe --help` for a complete help
