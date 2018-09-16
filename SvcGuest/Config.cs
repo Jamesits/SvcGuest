@@ -168,7 +168,7 @@ namespace SvcGuest
                 line = line.Trim();
 
                 // comments
-                if (line.Length == 0 || line.StartsWith("#")) continue;
+                if (line.Length == 0 || line.StartsWith("#") || line.StartsWith(";")) continue;
 
                 // section header
                 if (line[0] == '[' && line[line.Length - 1] == ']')
