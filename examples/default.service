@@ -1,8 +1,17 @@
+# See https://www.freedesktop.org/software/systemd/man/systemd.service.html for reference.
+
 [Unit]
+# [Optional] Service display name in Windows
 Name=Demo Service
+# [Optional] Will become part of the service description
 Description=This is a demo config file for SvcGuest.
+# [Optional] Will become another part of the service description
 Documentation=https://github.com/Jamesits/SvcGuest
 
 [Service]
+# [Optional, default=simple]
 Type=simple
+# [Optional, default=LOCALSYSTEM]
+User=Administrator
+# [Required]
 ExecStart=C:\Windows\System32\cmd.exe
