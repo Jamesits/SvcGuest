@@ -5,4 +5,4 @@ Documentation=https://github.com/Jamesits/SvcGuest
 
 [Service]
 Type=simple
-ExecStart=C:\Windows\System32\conhost.exe
+ExecStart=C:\Windows\System32\cmd.exe
