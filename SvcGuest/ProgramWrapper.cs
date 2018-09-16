@@ -141,7 +141,7 @@ namespace SvcGuest
                         Kernel32.SetConsoleCtrlHandler(null, true);
 
                         // Sent Ctrl-C to the attached console
-                        Kernel32.GenerateConsoleCtrlEvent(Kernel32.CtrlTypes.CTRL_C_EVENT, 0);
+                        Kernel32.GenerateConsoleCtrlEvent(DeepDarkWin32Fantasy.CtrlTypes.CTRL_C_EVENT, 0);
 
                         // Must wait here. If we don't wait and re-enable Ctrl-C handling below too fast, we might terminate ourselves.
                         p.WaitForExit(KillWaitMs);

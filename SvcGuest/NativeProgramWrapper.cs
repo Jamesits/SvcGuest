@@ -15,8 +15,8 @@ namespace SvcGuest
     class NativeProgramWrapper : ProgramWrapper
     {
 
-        private Kernel32.PROCESS_INFORMATION _pi;
-        private Kernel32.STARTUPINFO _si;
+        private DeepDarkWin32Fantasy.PROCESS_INFORMATION _pi;
+        private DeepDarkWin32Fantasy.STARTUPINFO _si;
         private Advapi32.SECURITY_ATTRIBUTES _saProcessAttributes;
         private Advapi32.SECURITY_ATTRIBUTES _saThreadAttributes;
 

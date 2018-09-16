@@ -83,7 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
-    <Compile Include="DeepDarkW32Fantasy.cs" />
+    <Compile Include="DeepDarkWin32Fantasy.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="NativeProgramWrapper.cs" />
     <Compile Include="PrivilegeManager.cs" />
@@ -97,6 +97,7 @@
     <Compile Include="SupervisorService.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="UACHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

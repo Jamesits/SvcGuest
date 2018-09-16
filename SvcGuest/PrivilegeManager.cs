@@ -52,9 +52,9 @@ namespace SvcGuest
         public bool SetPrivilege(string lpszPrivilege, bool bEnablePrivilege)
         {
             bool Status = true;
-            Kernel32.TOKEN_PRIVILEGES priv = new Kernel32.TOKEN_PRIVILEGES();
+            DeepDarkWin32Fantasy.TOKEN_PRIVILEGES priv = new DeepDarkWin32Fantasy.TOKEN_PRIVILEGES();
             IntPtr hToken = IntPtr.Zero;
-            Kernel32.LUID luid = new Kernel32.LUID();
+            DeepDarkWin32Fantasy.LUID luid = new DeepDarkWin32Fantasy.LUID();
             int RetLength = 0;
 
             if (!Kernel32.OpenProcessToken(this.m_hProcess, 0x0020, ref hToken))
@@ -70,7 +70,7 @@ namespace SvcGuest
             }
 
             priv.PrivilegeCount = 1;
-            priv.Privileges = new Kernel32.LUID_AND_ATTRIBUTES();
+            priv.Privileges = new DeepDarkWin32Fantasy.LUID_AND_ATTRIBUTES();
             priv.Privileges.Luid = luid;
             priv.Privileges.Attributes = (int)((bEnablePrivilege == true) ? 0x00000002L : 0x00000004L);
 
@@ -167,7 +167,7 @@ namespace SvcGuest
             IntPtr hFile = (IntPtr)(-1);
             IntPtr lpFile = (IntPtr)0;
             int dwFileSize = 0, dwReaded = 0, dwSize = 255;
-            Kernel32.IMAGE_DOS_HEADER DosHeader;
+            DeepDarkWin32Fantasy.IMAGE_DOS_HEADER DosHeader;
             byte[] Path = new byte[255];
             byte[] FileCopy = null;
             string lpFileName = "";
@@ -201,8 +201,8 @@ namespace SvcGuest
                 goto EXIT;
             }
 
-            DosHeader = new Kernel32.IMAGE_DOS_HEADER();
-            DosHeader = (Kernel32.IMAGE_DOS_HEADER)Marshal.PtrToStructure(lpFile, typeof(Kernel32.IMAGE_DOS_HEADER));
+            DosHeader = new DeepDarkWin32Fantasy.IMAGE_DOS_HEADER();
+            DosHeader = (DeepDarkWin32Fantasy.IMAGE_DOS_HEADER)Marshal.PtrToStructure(lpFile, typeof(DeepDarkWin32Fantasy.IMAGE_DOS_HEADER));
             if (!DosHeader.isValid)
             {
                 Status = 6;

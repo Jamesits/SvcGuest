@@ -3,6 +3,7 @@ using System.Configuration.Install;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Security.Permissions;
 using System.ServiceProcess;
 using System.Threading;
 using McMaster.Extensions.CommandLineUtils;
@@ -23,6 +24,10 @@ namespace SvcGuest
 
         [Option("-c|--config", CommandOptionType.SingleValue, Description = "Location for the config file. Default value is \"default.service\".")]
         public string ConfigPath { get; }
+
+        // ReSharper disable once StringLiteralTypo
+        [Option("--noelevate", CommandOptionType.NoValue, ShowInHelpText = false, Description = "Do not try to elevate automatically if not running as Administrator.")]
+        public bool DoNotElevate { get; }
 
         [Option("--impersonated", CommandOptionType.NoValue, ShowInHelpText = false, Description = "Indicates this is a helper process used to spawn the object process after impersonation.")]
         public bool IsImpersonatedProcess { get; }
@@ -88,6 +93,18 @@ namespace SvcGuest
 
             if (Environment.UserInteractive)
             {
+                Debug.WriteLine($"IsElevated: {UACHelper.IsRunAsAdmin()}");
+                Debug.WriteLine($"Cmdline: {Environment.CommandLine}");
+
+                if (!UACHelper.IsRunAsAdmin())
+                {
+                    Console.Error.WriteLine("Warning: you may not have sufficient privilege to install services.");
+                }
+                //if (!DoNotElevate && !UACHelper.IsRunAsAdmin())
+                //{
+                //    TryElevate();
+                //}
+
                 if (Install && Uninstall)
                 {
                     Console.WriteLine("Self-contradictory arguments?");
@@ -97,10 +114,83 @@ namespace SvcGuest
                 } else if (Uninstall) {
                     UninstallService();
                 }
+                else
+                {
+                    Console.WriteLine("Searching for unit files in program directory...");
+                    // Let's install every service in this folder
+                    try
+                    {
+                        var txtFiles = Directory.EnumerateFiles(Globals.ExecutableDirectory, "*.service", SearchOption.TopDirectoryOnly);
+
+                        foreach (string currentFile in txtFiles)
+                        {
+                            var proceed = Prompt.GetYesNo($"Do you want to register {Path.GetFileName(currentFile)}?", defaultAnswer: true);
+                            if (proceed) RegisterService(currentFile);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
             }
             else
             {
                 ServiceBase.Run(new SupervisorService());
+            }
+        }
+
+        private static void RegisterService(string filename)
+        {
+            var process = new Process()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = false,
+                    WorkingDirectory = Environment.CurrentDirectory,
+                    FileName = Globals.ExecutablePath,
+                    Arguments = $"--install --config {filename}",
+                }
+            };
+
+            try
+            {
+                process.Start();
+                process.WaitForExit();
+            }
+            catch
+            {
+                Console.Error.WriteLine("Register failed: unable to execute self.");
+                Environment.Exit(1);
+            }
+        }
+
+        // TODO: make it work
+        private static void TryElevate()
+        {
+            if (UACHelper.IsRunAsAdmin()) return;
+            var process = new Process()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = true,
+                    WorkingDirectory = Environment.CurrentDirectory,
+                    FileName = Globals.ExecutablePath,
+                    Arguments = Environment.CommandLine,
+                    Verb = "runas",
+                }
+            };
+
+            try
+            {
+                process.Start();
+                process.WaitForExit();
+                Environment.Exit(process.ExitCode);
+            }
+            catch
+            {
+                Console.Error.WriteLine("Elevation failed.");
+                Environment.Exit(1);
             }
         }
 
@@ -144,10 +234,16 @@ namespace SvcGuest
         /// The default global exception handler
         /// </summary>
         /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private static void CurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        /// <param name="eventArgs"></param>
+        private static void CurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs eventArgs)
         {
-            Console.WriteLine(e);
+            var e = eventArgs.ExceptionObject as Exception;
+            if (e?.InnerException is System.Security.SecurityException)
+            {
+                Console.Error.WriteLine("You have insufficient permission for this action. Consider run this program as Administrator.");
+                return;
+            }
+            else Console.WriteLine(e?.InnerException);
         }
     }
 }
