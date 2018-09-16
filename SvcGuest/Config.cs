@@ -135,8 +135,10 @@ namespace SvcGuest
                 }
             }
         }
-
         public List<ExecConfig> ExecStart => GetExecConfigs("Service", "ExecStart");
+        public string WorkingDirectory => GetValue("Service", "WorkingDirectory");
+
+        // ======================= Config parser ============================
 
         public override string ToString()
         {

@@ -14,6 +14,8 @@ You need a `your-program.service` config file first. An example can be found in 
 
 ## Features
 
+Features supported on the master branch (not the releases):
+
 * [x] Unit
     * [x] Description
     * [x] Documentation
@@ -31,6 +33,7 @@ You need a `your-program.service` config file first. An example can be found in 
     * [ ] ExecStopPost
     * [ ] Environment
     * [ ] EnvironmentFile
+    * [x] WorkingDirectory
 * [ ] Install
     * [ ] WantedBy
     * [ ] RequiredBy

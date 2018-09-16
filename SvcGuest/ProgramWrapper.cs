@@ -55,6 +55,7 @@ namespace SvcGuest
             _p.StartInfo.Arguments = arguments;
             _p.StartInfo.UseShellExecute = false;
             _p.StartInfo.RedirectStandardOutput = true;
+            _p.StartInfo.WorkingDirectory = Globals.Config.WorkingDirectory;
             _p.OutputDataReceived += (sender, args) => OnMessage(args.Data, false);
             _p.ErrorDataReceived += (sender, args) => OnMessage(args.Data, true);
             _p.EnableRaisingEvents = true;
