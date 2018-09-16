@@ -13,6 +13,7 @@ namespace SvcGuest
     [Command(Name = "SvcGuest.exe", Description = "Host any program as a Windows service.")]
     class Program
     {
+        #region Command Line Arguments
         // ReSharper disable UnassignedGetOnlyAutoProperty
         [Option("-i|--install", Description = "Install the service")]
         public bool Install { get; }
@@ -33,12 +34,13 @@ namespace SvcGuest
         public int ExecConfigIndex { get; }
         // ReSharper restore UnassignedGetOnlyAutoProperty
 
-        public static ManagedProgramWrapper Wrapper;
-
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         public static int Main(string[] args) => CommandLineApplication.Execute<Program>(args);
+        #endregion
+
+        public static ManagedProgramWrapper Wrapper;
 
         // ReSharper disable once UnusedMember.Global
         public void OnExecute()
@@ -102,6 +104,9 @@ namespace SvcGuest
             }
         }
 
+        /// <summary>
+        /// Installs self as a Windows service.
+        /// </summary>
         private static void InstallService()
         {
             ManagedInstallerClass.InstallHelper(new[]
@@ -110,11 +115,19 @@ namespace SvcGuest
             });
         }
 
+        /// <summary>
+        /// Uninstalls self-installed service
+        /// </summary>
         private static void UninstallService()
         {
             ManagedInstallerClass.InstallHelper(new [] { "/u", Assembly.GetExecutingAssembly().Location });
         }
 
+        /// <summary>
+        /// Triggered on receiving a termination request. Clean up self, terminate all child process.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private static void OnProcessExit(object sender, EventArgs e)
         {
             Debug.WriteLine("Being killed, cleaning up...");
@@ -127,6 +140,11 @@ namespace SvcGuest
             }
         }
 
+        /// <summary>
+        /// The default global exception handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private static void CurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Console.WriteLine(e);

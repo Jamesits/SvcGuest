@@ -7,6 +7,11 @@ using System.Timers;
 
 namespace SvcGuest
 {
+    /// <summary>
+    /// Run external program as another user.
+    /// Context switching is handled by native code.
+    /// Do not have events, need to poll to check process status.
+    /// </summary>
     class NativeProgramWrapper : ProgramWrapper
     {
 

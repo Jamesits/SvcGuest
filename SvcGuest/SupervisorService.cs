@@ -7,6 +7,9 @@ using System.ServiceProcess;
 
 namespace SvcGuest
 {
+    /// <summary>
+    /// The service itself. Will be invoked by system.
+    /// </summary>
     public class SupervisorService : ServiceBase
     {
 

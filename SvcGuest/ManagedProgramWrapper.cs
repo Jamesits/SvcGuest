@@ -3,6 +3,9 @@ using System.Diagnostics;
 
 namespace SvcGuest
 {
+    /// <summary>
+    /// Run external program as self, cannot switch user, but have managed events for program exit.
+    /// </summary>
     class ManagedProgramWrapper : ProgramWrapper
     {
 

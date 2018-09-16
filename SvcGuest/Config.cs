@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace SvcGuest
 {
@@ -101,6 +100,9 @@ namespace SvcGuest
         }
     }
 
+    /// <summary>
+    /// A hand written ini-like file parser.
+    /// </summary>
     public class Config
     {
         public readonly Dictionary<string, Dictionary<string, List<string>>> RawConfig = new Dictionary<string, Dictionary<string, List<string>>>();
@@ -141,11 +143,11 @@ namespace SvcGuest
 
         // ======================= Config parser ============================
 
-        public override string ToString()
-        {
-            StringBuilder sb = new StringBuilder("Current config:");
-            return sb.ToString();
-        }
+        //public override string ToString()
+        //{
+        //    StringBuilder sb = new StringBuilder("Current config:");
+        //    return sb.ToString();
+        //}
 
         public Config() { }
 

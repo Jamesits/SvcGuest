@@ -2,6 +2,9 @@
 
 namespace SvcGuest
 {
+    /// <summary>
+    /// Global accessible configs, constants, etc.
+    /// </summary>
     public static class Globals
     {
         public static Config Config;

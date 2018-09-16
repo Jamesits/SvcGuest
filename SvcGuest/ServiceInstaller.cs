@@ -6,6 +6,9 @@ using System.Text;
 
 namespace SvcGuest
 {
+    /// <summary>
+    /// Handles installutil.exe
+    /// </summary>
     [RunInstaller(true)]
     // ReSharper disable once UnusedMember.Global
     public class GuestServiceInstaller : Installer

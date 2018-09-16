@@ -6,8 +6,17 @@ using Timer = System.Timers.Timer;
 
 namespace SvcGuest
 {
+    /// <summary>
+    /// Unified interface for starting and stopping an external program.
+    /// Also provides basic functions for logging.
+    /// </summary>
     abstract class ProgramWrapper
     {
+        #region Logging
+        protected const int LogMergeWindow = 5; // seconds
+        protected static readonly string EventSourceName = Globals.ServiceName;
+        protected const string EventCategory = "Application";
+
         protected class LogBufferEntry
         {
             public string Message { get; set; }
@@ -25,11 +34,60 @@ namespace SvcGuest
             Interval = 1000,
         };
 
-        public const int KillWaitMs = 20000;
-        protected const int LogMergeWindow = 5; // seconds
-        protected static readonly string EventSourceName = Globals.ServiceName;
-        protected const string EventCategory = "Application";
+        // channel = false => stdout
+        // channel = true => stderr
+        protected void OnMessage(string message, bool channel)
+        {
+            if (LastLogEntry == null)
+            {
+                LastLogEntry = new LogBufferEntry()
+                {
+                    Count = 1,
+                    Message = message,
+                    Type = channel ? EventLogEntryType.Error : EventLogEntryType.Information,
+                    LastHitTime = DateTime.Now,
+                };
+            }
+            else
+            {
+                if (LastLogEntry.Message == message)
+                {
+                    LastLogEntry.Count++;
+                    LastLogEntry.LastHitTime = DateTime.Now;
+                }
+                else
+                {
+                    CommitLog();
+                }
+            }
 
+        }
+
+        private void OnLogBufferFlushTimer(Object sender, EventArgs args)
+        {
+            if ((DateTime.Now - LastLogEntry.LastHitTime).TotalSeconds > LogMergeWindow)
+            {
+                CommitLog();
+            }
+        }
+
+        protected void CommitLog()
+        {
+            if (LastLogEntry != null)
+            {
+                EventLog.WriteEntry(EventSourceName,
+                    LastLogEntry.Count > 1
+                        ? $"[Repeated {LastLogEntry.Count} times in {(DateTime.Now - LastLogEntry.LastHitTime).TotalSeconds} seconds] {LastLogEntry.Message}"
+                        : LastLogEntry.Message, LastLogEntry.Type);
+
+                LastLogEntry = null;
+            }
+        }
+        #endregion
+
+        public const int KillWaitMs = 20000;
+
+        #region interfaces
         public static int SelfProcessId => Process.GetCurrentProcess().Id;
 
         protected virtual void OnProgramExited(object sender, EventArgs e)
@@ -40,6 +98,11 @@ namespace SvcGuest
 
         public event EventHandler ProgramExited;
 
+        public abstract void Start();
+
+        public abstract void Stop();
+        #endregion
+
         protected ProgramWrapper() 
         {
             // initialize event log
@@ -49,10 +112,6 @@ namespace SvcGuest
             // set up flush log timer
             FlushLogBufferTimer.Elapsed += OnLogBufferFlushTimer;
         }
-
-        public abstract void Start();
-
-        public abstract void Stop();
 
         public static void QuitProcess(Process p)
         {
@@ -104,56 +163,6 @@ namespace SvcGuest
             {
                 // already exited
                 EventLog.WriteEntry(EventSourceName, "Unable to signal main process for termination, maybe exited already", EventLogEntryType.FailureAudit);
-            }
-        }
-
-        // channel = false => stdout
-        // channel = true => stderr
-        protected void OnMessage(string message, bool channel)
-        {
-            if (LastLogEntry == null)
-            {
-                LastLogEntry = new LogBufferEntry()
-                {
-                    Count = 1,
-                    Message = message,
-                    Type = channel ? EventLogEntryType.Error : EventLogEntryType.Information,
-                    LastHitTime = DateTime.Now,
-                };
-            }
-            else
-            {
-                if (LastLogEntry.Message == message)
-                {
-                    LastLogEntry.Count++;
-                    LastLogEntry.LastHitTime = DateTime.Now;
-                }
-                else
-                {
-                    CommitLog();
-                }
-            }
-
-        }
-
-        private void OnLogBufferFlushTimer(Object sender, EventArgs args)
-        {
-            if ((DateTime.Now - LastLogEntry.LastHitTime).TotalSeconds > LogMergeWindow)
-            {
-                CommitLog();
-            }
-        }
-
-        protected void CommitLog()
-        {
-            if (LastLogEntry != null)
-            {
-                EventLog.WriteEntry(EventSourceName,
-                    LastLogEntry.Count > 1
-                        ? $"[Repeated {LastLogEntry.Count} times in {(DateTime.Now - LastLogEntry.LastHitTime).TotalSeconds} seconds] {LastLogEntry.Message}"
-                        : LastLogEntry.Message, LastLogEntry.Type);
-
-                LastLogEntry = null;
             }
         }
 
