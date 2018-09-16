@@ -25,6 +25,7 @@ Features supported on the master branch (not the releases):
         * [ ] forking
         * [ ] oneshot
         * [ ] idle
+    * [x] User
     * [ ] RemainAfterExit
     * [ ] ExecStartPre
     * [x] ExecStart
@@ -33,7 +34,10 @@ Features supported on the master branch (not the releases):
     * [ ] ExecStopPost
     * [ ] Environment
     * [ ] EnvironmentFile
+    * [ ] PassEnvironment
+    * [ ] UnsetEnvironment
     * [x] WorkingDirectory
+    * [ ] CPUAffinity
 * [ ] Install
     * [ ] WantedBy
     * [ ] RequiredBy

@@ -56,6 +56,9 @@ namespace SvcGuest
             _p.StartInfo.UseShellExecute = false;
             _p.StartInfo.RedirectStandardOutput = true;
             _p.StartInfo.WorkingDirectory = Globals.Config.WorkingDirectory;
+            _p.StartInfo.LoadUserProfile = true;
+
+
             _p.OutputDataReceived += (sender, args) => OnMessage(args.Data, false);
             _p.ErrorDataReceived += (sender, args) => OnMessage(args.Data, true);
             _p.EnableRaisingEvents = true;
@@ -64,7 +67,9 @@ namespace SvcGuest
 
         public void Start()
         {
+
             _p.Start();
+
             try
             {
                 _p.BeginOutputReadLine();

@@ -37,6 +37,9 @@
   <PropertyGroup>
     <StartupObject>SvcGuest.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Costura, Version=3.1.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.3.1.0\lib\net46\Costura.dll</HintPath>
@@ -61,7 +64,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="DeepDarkW32Fantasy.cs" />
     <Compile Include="Globals.cs" />
+    <Compile Include="PrivilegeManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgramWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -74,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="app.manifest" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

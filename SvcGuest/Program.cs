@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Configuration.Install;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Remoting.Channels;
 using System.ServiceProcess;
+using System.Threading;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace SvcGuest
@@ -11,18 +14,25 @@ namespace SvcGuest
     [Command(Name = "SvcGuest.exe", Description = "Host any program as a Windows service.")]
     class Program
     {
+        // ReSharper disable UnassignedGetOnlyAutoProperty
         [Option("-i|--install", Description = "Install the service")]
-        // ReSharper disable once UnassignedGetOnlyAutoProperty
         public bool Install { get; }
 
         [Option("-u|--uninstall", Description = "Uninstall the service")]
-        // ReSharper disable once UnassignedGetOnlyAutoProperty
         public bool Uninstall { get; }
 
         [Option("-c|--config", CommandOptionType.SingleValue, Description = "Location for the config file. Default value is \"default.service\".")]
-        
-        // ReSharper disable once UnassignedGetOnlyAutoProperty
         public string ConfigPath { get; }
+
+        [Option("--impersonated", CommandOptionType.NoValue, ShowInHelpText = false, Description = "Indicates this is a helper process used to spawn the object process after impersonation.")]
+        public bool IsImpersonatedProcess { get; }
+
+        [Option("--LaunchType", CommandOptionType.SingleValue, ShowInHelpText = false)]
+        public string ExecConfigLaunchType { get; }
+
+        [Option("--LaunchIndex", CommandOptionType.SingleValue, ShowInHelpText = false)]
+        public int ExecConfigIndex { get; }
+        // ReSharper restore UnassignedGetOnlyAutoProperty
 
         /// <summary>
         /// The main entry point for the application.
@@ -43,6 +53,33 @@ namespace SvcGuest
             var config = new Config(configPath);
             Globals.Config = config;
             Globals.ServiceArguments = $"--config {configPath}";
+
+            Debug.WriteLine($"{IsImpersonatedProcess}");
+
+            // If this is a helper process 
+            if (IsImpersonatedProcess)
+            {
+                Debug.WriteLine("Executing impersonation helper routing");
+                ExecConfig execConfig;
+                switch (ExecConfigLaunchType)
+                {
+                    case "ExecStart":
+                        execConfig = Globals.Config.ExecStart[ExecConfigIndex];
+                        break;
+                    default:
+                        throw new ArgumentException();
+                }
+                var wrapper = new ProgramWrapper(execConfig.ProgramPath, execConfig.Arguments);
+                var hasExited = false;
+                wrapper.ProgramExited += (sender, eventargs) => { hasExited = true; };
+                wrapper.Start();
+                
+                while (!hasExited)
+                {
+                    Thread.Sleep(1000);
+                }
+                return;
+            }
 
             if (Environment.UserInteractive)
             {

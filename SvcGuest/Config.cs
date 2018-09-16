@@ -137,6 +137,7 @@ namespace SvcGuest
         }
         public List<ExecConfig> ExecStart => GetExecConfigs("Service", "ExecStart");
         public string WorkingDirectory => GetValue("Service", "WorkingDirectory");
+        public string User => GetValue("Service", "User");
 
         // ======================= Config parser ============================
 
