@@ -36,8 +36,8 @@ namespace SvcGuest
             public int dwWaitHint;
         };
 
+        // ReSharper disable once StringLiteralTypo
         [DllImport("advapi32.dll", SetLastError = true)]
-        // use this.ServiceHandle
         private static extern bool SetServiceStatus(IntPtr handle, ref ServiceStatus serviceStatus);
         private ServiceStatus _serviceStatus = new ServiceStatus()
         {
