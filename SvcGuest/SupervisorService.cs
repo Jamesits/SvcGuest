@@ -109,9 +109,8 @@ namespace SvcGuest
                         Advapi32.SECURITY_ATTRIBUTES saThreadAttributes = new Advapi32.SECURITY_ATTRIBUTES();
 
                         // NOTE: the argument need a space on the front
-                        var execArgs = $" --impersonated --LaunchType ExecStart --LaunchIndex 0 --config {Globals.ConfigPath}";
+                        var execArgs = $"\"{Globals.ExecutablePath}\" --impersonated --LaunchType ExecStart --LaunchIndex 0 --config {Globals.ConfigPath}";
 
-                        Debug.WriteLine($"Execute helper process {Globals.ExecutablePath} {execArgs} from {Globals.ExecutableDirectory}");
                         if (!Advapi32.CreateProcessAsUser(identity.Token, Globals.ExecutablePath, execArgs,
                             ref saProcessAttributes, ref saThreadAttributes, false, 0, IntPtr.Zero, Globals.ExecutableDirectory, ref si, out pi))
                             throw new Win32Exception();
