@@ -40,8 +40,8 @@ namespace SvcGuest
             // read config
             var configPath = ConfigPath ?? "default.service";
             Globals.ConfigPath = configPath;
-            var configRdr = new ConfigReader(configPath);
-            Globals.Config = configRdr.Config;
+            var config = new Config(configPath);
+            Globals.Config = config;
             Globals.ServiceArguments = $"--config {configPath}";
 
             if (Environment.UserInteractive)

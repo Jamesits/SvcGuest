@@ -60,7 +60,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConfigReader.cs" />
+    <Compile Include="Config.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgramWrapper.cs" />

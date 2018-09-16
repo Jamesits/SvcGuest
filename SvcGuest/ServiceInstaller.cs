@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.ComponentModel;
 using System.Configuration.Install;
 using System.ServiceProcess;
@@ -8,6 +7,7 @@ using System.Text;
 namespace SvcGuest
 {
     [RunInstaller(true)]
+    // ReSharper disable once UnusedMember.Global
     public class GuestServiceInstaller : Installer
     {
         public GuestServiceInstaller()
@@ -18,15 +18,15 @@ namespace SvcGuest
             //set the privileges
             processInstaller.Account = ServiceAccount.LocalSystem;
 
-            serviceInstaller.DisplayName = Globals.DisplayName;
-            serviceInstaller.Description = Globals.Description;
+            serviceInstaller.DisplayName = Globals.Config.Name;
+            serviceInstaller.Description = Globals.Config.Description + "\n" + Globals.Config.Documentation;
             serviceInstaller.StartType = ServiceStartMode.Automatic;
 
             //must be the same as what was set in Program's constructor
             serviceInstaller.ServiceName = Globals.ServiceName;
 
-            this.Installers.Add(processInstaller);
-            this.Installers.Add(serviceInstaller);
+            Installers.Add(processInstaller);
+            Installers.Add(serviceInstaller);
         }
 
         public override void Install(IDictionary stateSaver)

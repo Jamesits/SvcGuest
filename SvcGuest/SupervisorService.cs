@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 
@@ -58,15 +57,11 @@ namespace SvcGuest
             _serviceStatus.dwCurrentState = ServiceState.SERVICE_START_PENDING;
             SetServiceStatus(ServiceHandle, ref _serviceStatus);
 
-            // TODO: correct parsing of default value
-            if (Globals.Config["Service"]["Type"][0] == "simple")
+            if (Globals.Config.Type == ServiceType.Simple)
             {
-                var prog = Globals.Config["Service"]["ExecStart"][0].Trim();
-                string cmd, cargs;
-                SplitCommandline(prog, out cmd, out cargs);
-                Debug.WriteLine(cmd);
-                Debug.WriteLine(cargs);
-                var wrapper = new ProgramWrapper(cmd, cargs);
+                // expect there is only one ExecStart=
+                var mainProgram = Globals.Config.ExecStart[0];
+                var wrapper = new ProgramWrapper(mainProgram.ProgramPath, mainProgram.Arguments);
                 _execStartProgramPool.Add(wrapper);
                 wrapper.Start();
             }
@@ -100,22 +95,6 @@ namespace SvcGuest
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-        }
-
-        internal void SplitCommandline(string cmd, out string program, out string args)
-        {
-            var i = 0;
-            var endToken = ' ';
-            cmd = cmd.Trim();
-            for (; i < cmd.Length; ++i)
-            {
-                if (endToken == ' ' && cmd[i] == endToken) break;
-                if (cmd[i] == endToken) endToken = ' ';
-                if (cmd[i] == '\'' || cmd[i] == '\"') endToken = cmd[i];
-            }
-
-            program = cmd.Substring(0, i);
-            args = cmd.Substring(i, cmd.Length - i);
         }
     }
 }
