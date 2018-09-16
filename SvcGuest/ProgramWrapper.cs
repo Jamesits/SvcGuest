@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Management;
 using Timer = System.Timers.Timer;
 
@@ -177,6 +178,8 @@ namespace SvcGuest
                 var mo = (ManagementObject)o;
                 children.Add(Convert.ToInt32(mo["ProcessID"]));
             }
+
+            children = children.OrderByDescending(i => i).ToList(); ;
 
             return children;
         }
