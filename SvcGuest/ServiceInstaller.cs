@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.ComponentModel;
 using System.Configuration.Install;
 using System.ServiceProcess;
@@ -19,7 +20,9 @@ namespace SvcGuest
             processInstaller.Account = ServiceAccount.LocalSystem;
 
             serviceInstaller.DisplayName = Globals.Config.Name;
-            serviceInstaller.Description = Globals.Config.Description + "\n" + Globals.Config.Documentation;
+            serviceInstaller.Description = "";
+            if (Globals.Config.Description != null) serviceInstaller.Description += Globals.Config.Description;
+            if (Globals.Config.Documentation != null) serviceInstaller.Description += "\n" + Globals.Config.Documentation;
             serviceInstaller.StartType = ServiceStartMode.Automatic;
 
             //must be the same as what was set in Program's constructor
