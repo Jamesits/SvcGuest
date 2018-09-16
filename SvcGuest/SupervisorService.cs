@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Runtime.Remoting.Channels;
 using System.Security.Principal;
 using System.ServiceProcess;
-using System.Text;
 
 namespace SvcGuest
 {
@@ -68,15 +66,14 @@ namespace SvcGuest
                 var mainProgram = Globals.Config.ExecStart[0];
                 if (Globals.Config.User == null)
                 {
-                    var wrapper = new ProgramWrapper(mainProgram.ProgramPath, mainProgram.Arguments);
+                    var wrapper = new ManagedProgramWrapper(mainProgram.ProgramPath, mainProgram.Arguments);
                     wrapper.ProgramExited += (sender, eventArgs) => OnStop();
                     _execStartProgramPool.Add(wrapper);
                     wrapper.Start();
                 }
                 else
                 {
-                    // we need to impersonate someone!
-                    Debug.WriteLine("Check impersonating privilege");
+                    // Get the privilege for impersonation
                     var currentProcess = new CProcess();
                     if (!currentProcess.SetPrivilege("SeTcbPrivilege", true))
                     {
@@ -87,34 +84,23 @@ namespace SvcGuest
                         throw new InvalidOperationException("Required privilege SeDelegateSessionUserImpersonatePrivilege failed");
                     }
 
+                    // Get the identity we needed
                     var identity = new WindowsIdentity(Globals.Config.User);
                     if (identity.ImpersonationLevel != TokenImpersonationLevel.Impersonation)
                     {
                         throw new InvalidOperationException("Insufficient permission");
                     }
 
+                    // Run the helper process as that identity
                     using (WindowsImpersonationContext impersonatedUser = identity?.Impersonate())
                     {
                         Debug.WriteLine("After impersonation: " + WindowsIdentity.GetCurrent().Name);
                         Debug.WriteLine(identity.ImpersonationLevel);
 
-                        // Declare variables
-                        Kernel32.PROCESS_INFORMATION pi;
-                        Kernel32.STARTUPINFO si = new Kernel32.STARTUPINFO();
-
-                        // Initialize structs
-                        si.cb = Marshal.SizeOf(si);
-
-                        Advapi32.SECURITY_ATTRIBUTES saProcessAttributes = new Advapi32.SECURITY_ATTRIBUTES();
-                        Advapi32.SECURITY_ATTRIBUTES saThreadAttributes = new Advapi32.SECURITY_ATTRIBUTES();
-
-                        // NOTE: the argument need a space on the front
-                        var execArgs = $"\"{Globals.ExecutablePath}\" --impersonated --LaunchType ExecStart --LaunchIndex 0 --config {Globals.ConfigPath}";
-
-                        if (!Advapi32.CreateProcessAsUser(identity.Token, Globals.ExecutablePath, execArgs,
-                            ref saProcessAttributes, ref saThreadAttributes, false, 0, IntPtr.Zero, Globals.ExecutableDirectory, ref si, out pi))
-                            throw new Win32Exception();
-                        Debug.WriteLine($"Helper process at {pi.dwProcessId}");
+                        var wrapper = new NativeProgramWrapper("ExecStart", 0, identity.Token);
+                        wrapper.ProgramExited += (sender, eventArgs) => OnStop();
+                        _execStartProgramPool.Add(wrapper);
+                        wrapper.Start();
                     }
                 }
                 
@@ -131,6 +117,7 @@ namespace SvcGuest
         {
             // Update the service state to Stop Pending.  
             _serviceStatus.dwCurrentState = ServiceState.SERVICE_STOP_PENDING;
+            _serviceStatus.dwWaitHint = ProgramWrapper.KillWaitMs;
             SetServiceStatus(ServiceHandle, ref _serviceStatus);
 
             foreach (var wrapper in _execStartProgramPool)

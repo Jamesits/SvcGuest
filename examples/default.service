@@ -14,4 +14,4 @@ Type=simple
 # [Optional, default=LOCALSYSTEM]
 User=Administrator
 # [Required]
-ExecStart=C:\Windows\System32\cmd.exe
+ExecStart=C:\Windows\System32\cmd.exe /c ping /t 127.0.0.1

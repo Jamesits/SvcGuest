@@ -1,31 +1,37 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Timers;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Timer = System.Timers.Timer;
 
 namespace SvcGuest
 {
-    class ProgramWrapper
+    abstract class ProgramWrapper
     {
-        private class LogBufferEntry
+        protected class LogBufferEntry
         {
             public string Message { get; set; }
             public uint Count { get; set; }
             public EventLogEntryType Type { get; set; }
             public DateTime LastHitTime { get; set; }
         }
-        private readonly Process _p = new Process();
-        private LogBufferEntry _lastLogEntry;
-        private readonly Timer _flushLogBufferTimer = new Timer()
+
+        protected LogBufferEntry LastLogEntry;
+
+        protected readonly Timer FlushLogBufferTimer = new Timer()
         {
             AutoReset = true,
             Enabled = true,
             Interval = 1000,
         };
 
-        private const int KillWaitMs = 20000;
-        private const int LogMergeWindow = 5; // seconds
-        private readonly string _eventSourceName = Globals.ServiceName;
-        private const string EventCategory = "Application";
+        public const int KillWaitMs = 20000;
+        protected const int LogMergeWindow = 5; // seconds
+        protected readonly string EventSourceName = Globals.ServiceName;
+        protected const string EventCategory = "Application";
 
         protected virtual void OnProgramExited(object sender, EventArgs e)
         {
@@ -35,87 +41,80 @@ namespace SvcGuest
 
         public event EventHandler ProgramExited;
 
-        // ReSharper disable once UnusedMember.Global
-        public ProgramWrapper(string executableName) : this(executableName, null)
-        {
-
-        }
-
-        public ProgramWrapper(string executableName, string arguments)
+        protected ProgramWrapper() 
         {
             // initialize event log
-            if (!EventLog.SourceExists(_eventSourceName))
-                EventLog.CreateEventSource(_eventSourceName, EventCategory);
+            if (!EventLog.SourceExists(EventSourceName))
+                EventLog.CreateEventSource(EventSourceName, EventCategory);
 
             // set up flush log timer
-            _flushLogBufferTimer.Elapsed += OnLogBufferFlushTimer;
-
-            // initialize process
-            _p.StartInfo.FileName = executableName;
-            _p.StartInfo.Arguments = arguments;
-            _p.StartInfo.UseShellExecute = false;
-            _p.StartInfo.RedirectStandardOutput = true;
-            _p.StartInfo.WorkingDirectory = Globals.Config.WorkingDirectory;
-            _p.StartInfo.LoadUserProfile = true;
-
-
-            _p.OutputDataReceived += (sender, args) => OnMessage(args.Data, false);
-            _p.ErrorDataReceived += (sender, args) => OnMessage(args.Data, true);
-            _p.EnableRaisingEvents = true;
-            _p.Exited += OnExit;
+            FlushLogBufferTimer.Elapsed += OnLogBufferFlushTimer;
         }
 
-        public void Start()
+        public abstract void Start();
+
+        public abstract void Stop();
+
+        protected void QuitProcess(Process p)
         {
-
-            _p.Start();
-
-            try
+            if (p.HasExited)
             {
-                _p.BeginOutputReadLine();
-                _p.BeginErrorReadLine();
-            }
-            catch (InvalidOperationException)
-            {
-                EventLog.WriteEntry(_eventSourceName, "Unable to read stdout/stderr", EventLogEntryType.FailureAudit);
-            }
-        }
-
-        public void Stop()
-        {
-            if (_p.HasExited)
-            {
-                EventLog.WriteEntry(_eventSourceName, "Main process already exited", EventLogEntryType.FailureAudit);
+                EventLog.WriteEntry(EventSourceName, "Main process already exited", EventLogEntryType.FailureAudit);
                 return;
             }
+
             try
             {
-                EventLog.WriteEntry(_eventSourceName, "Terminating main process", EventLogEntryType.Information);
-                _p.CloseMainWindow();
-                _p.WaitForExit(KillWaitMs);
-                if (!_p.HasExited)
+                EventLog.WriteEntry(EventSourceName, "Terminating main process", EventLogEntryType.Information);
+                if (p.CloseMainWindow())
+                {
+                    Debug.WriteLine("Child process has a window, close message sent");
+                    p.WaitForExit(KillWaitMs);
+                }
+                else
+                {
+                    // explanation see: http://stanislavs.org/stopping-command-line-applications-programatically-with-ctrl-c-events-from-net/
+                    // try to attach to process' console
+                    if (Kernel32.AttachConsole((uint)p.Id))
+                    {
+                        Debug.WriteLine("Child process has a console, trying to send a ^C");
+
+                        // Disable Ctrl-C handling for our program
+                        Kernel32.SetConsoleCtrlHandler(null, true);
+
+                        // Sent Ctrl-C to the attached console
+                        Kernel32.GenerateConsoleCtrlEvent(Kernel32.CtrlTypes.CTRL_C_EVENT, 0);
+
+                        // Must wait here. If we don't wait and re-enable Ctrl-C handling below too fast, we might terminate ourselves.
+                        p.WaitForExit(KillWaitMs);
+
+                        Kernel32.FreeConsole();
+                        Kernel32.SetConsoleCtrlHandler(null, false);
+                    }
+                }
+                if (!p.HasExited)
                 {
                     // failed to terminate
-                    EventLog.WriteEntry(_eventSourceName, "Main process failed to gracefully shutdown", EventLogEntryType.FailureAudit);
-                    _p.Kill();
-                    _p.WaitForExit();
+                    EventLog.WriteEntry(EventSourceName, "Main process failed to gracefully shutdown", EventLogEntryType.FailureAudit);
+                    Debug.WriteLine("Child process failed to terminate, killing");
+                    p.Kill();
+                    p.WaitForExit();
                 }
             }
             catch (InvalidOperationException)
             {
                 // already exited
-                EventLog.WriteEntry(_eventSourceName, "Unable to signal main process for termination, maybe exited already", EventLogEntryType.FailureAudit);
+                EventLog.WriteEntry(EventSourceName, "Unable to signal main process for termination, maybe exited already", EventLogEntryType.FailureAudit);
             }
-            _p.Close();
         }
 
         // channel = false => stdout
         // channel = true => stderr
-        private void OnMessage(string message, bool channel)
+        protected void OnMessage(string message, bool channel)
         {
-            if (_lastLogEntry == null)
+            if (LastLogEntry == null)
             {
-                _lastLogEntry = new LogBufferEntry()
+                LastLogEntry = new LogBufferEntry()
                 {
                     Count = 1,
                     Message = message,
@@ -125,10 +124,10 @@ namespace SvcGuest
             }
             else
             {
-                if (_lastLogEntry.Message == message)
+                if (LastLogEntry.Message == message)
                 {
-                    _lastLogEntry.Count++;
-                    _lastLogEntry.LastHitTime = DateTime.Now;
+                    LastLogEntry.Count++;
+                    LastLogEntry.LastHitTime = DateTime.Now;
                 }
                 else
                 {
@@ -140,28 +139,23 @@ namespace SvcGuest
 
         private void OnLogBufferFlushTimer(Object sender, EventArgs args)
         {
-            if ((DateTime.Now - _lastLogEntry.LastHitTime).TotalSeconds > LogMergeWindow)
+            if ((DateTime.Now - LastLogEntry.LastHitTime).TotalSeconds > LogMergeWindow)
             {
                 CommitLog();
             }
         }
 
-        private void CommitLog()
+        protected void CommitLog()
         {
-            if (_lastLogEntry != null)
+            if (LastLogEntry != null)
             {
-                EventLog.WriteEntry(_eventSourceName,
-                    _lastLogEntry.Count > 1
-                        ? $"[Repeated {_lastLogEntry.Count} times in {(DateTime.Now - _lastLogEntry.LastHitTime).TotalSeconds} seconds] {_lastLogEntry.Message}"
-                        : _lastLogEntry.Message, _lastLogEntry.Type);
+                EventLog.WriteEntry(EventSourceName,
+                    LastLogEntry.Count > 1
+                        ? $"[Repeated {LastLogEntry.Count} times in {(DateTime.Now - LastLogEntry.LastHitTime).TotalSeconds} seconds] {LastLogEntry.Message}"
+                        : LastLogEntry.Message, LastLogEntry.Type);
 
-                _lastLogEntry = null;
+                LastLogEntry = null;
             }
-        }
-
-        private void OnExit(object sender, EventArgs args)
-        {
-            OnProgramExited(sender, args);
         }
     }
 }

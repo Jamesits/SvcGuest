@@ -117,6 +117,19 @@ namespace SvcGuest
             TOKEN_ADJUST_PRIVILEGES | TOKEN_ADJUST_GROUPS | TOKEN_ADJUST_DEFAULT |
             TOKEN_ADJUST_SESSIONID);
 
+        // Delegate type to be used as the Handler Routine for SCCH
+        public delegate Boolean ConsoleCtrlDelegate(CtrlTypes CtrlType);
+
+        // Enumerated type for the control messages sent to the handler routine
+        public enum CtrlTypes : uint
+        {
+            CTRL_C_EVENT = 0,
+            CTRL_BREAK_EVENT,
+            CTRL_CLOSE_EVENT,
+            CTRL_LOGOFF_EVENT = 5,
+            CTRL_SHUTDOWN_EVENT
+        }
+
         #endregion Structs
         #region Functions
         [DllImport("kernel32.dll")]
@@ -173,6 +186,20 @@ namespace SvcGuest
         public static extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
         [DllImport("kernel32.dll")]
         public static extern bool DuplicateHandle(IntPtr hSourceProcessHandle, IntPtr hSourceHandle, IntPtr TargetProcessHandle, ref IntPtr lpTargetHandle, int dwDesiredAccess, bool bInherithandle, int dwOptions);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool AttachConsole(uint dwProcessId);
+
+        [DllImport("kernel32.dll")]
+        public static extern bool SetConsoleCtrlHandler(ConsoleCtrlDelegate HandlerRoutine, bool Add);
+
+        [DllImport("kernel32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GenerateConsoleCtrlEvent(CtrlTypes dwCtrlEvent, uint dwProcessGroupId);
+
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        public static extern bool FreeConsole();
+
         #endregion Function
     }
 

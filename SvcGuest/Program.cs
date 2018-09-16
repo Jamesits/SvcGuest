@@ -34,6 +34,8 @@ namespace SvcGuest
         public int ExecConfigIndex { get; }
         // ReSharper restore UnassignedGetOnlyAutoProperty
 
+        public static ManagedProgramWrapper Wrapper;
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -59,7 +61,8 @@ namespace SvcGuest
             // If this is a helper process 
             if (IsImpersonatedProcess)
             {
-                Debug.WriteLine("Executing impersonation helper routing");
+                Debug.WriteLine("Executing impersonation helper routine");
+                AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
                 ExecConfig execConfig;
                 switch (ExecConfigLaunchType)
                 {
@@ -69,10 +72,10 @@ namespace SvcGuest
                     default:
                         throw new ArgumentException();
                 }
-                var wrapper = new ProgramWrapper(execConfig.ProgramPath, execConfig.Arguments);
+                Wrapper = new ManagedProgramWrapper(execConfig.ProgramPath, execConfig.Arguments);
                 var hasExited = false;
-                wrapper.ProgramExited += (sender, eventargs) => { hasExited = true; };
-                wrapper.Start();
+                Wrapper.ProgramExited += (sender, eventArgs) => { hasExited = true; };
+                Wrapper.Start();
                 
                 while (!hasExited)
                 {
@@ -110,6 +113,12 @@ namespace SvcGuest
         private static void UninstallService()
         {
             ManagedInstallerClass.InstallHelper(new [] { "/u", Assembly.GetExecutingAssembly().Location });
+        }
+
+        private static void OnProcessExit(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Being killed, cleaning up...");
+            Wrapper.Stop();
         }
 
         private static void CurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
