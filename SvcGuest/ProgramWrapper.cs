@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 
 namespace SvcGuest
@@ -15,7 +11,7 @@ namespace SvcGuest
             public string Message { get; set; }
             public uint Count { get; set; }
             public EventLogEntryType Type { get; set; }
-            public DateTime lastHitTime { get; set; }
+            public DateTime LastHitTime { get; set; }
         }
         private readonly Process _p = new Process();
         private LogBufferEntry _lastLogEntry;
@@ -28,9 +24,10 @@ namespace SvcGuest
 
         private const int KillWaitMs = 20000;
         private const int LogMergeWindow = 5; // seconds
-        private readonly string EventSourceName = Globals.ServiceName;
+        private readonly string _eventSourceName = Globals.ServiceName;
         private const string EventCategory = "Application";
 
+        // ReSharper disable once UnusedMember.Global
         public ProgramWrapper(string executableName) : this(executableName, null)
         {
 
@@ -39,8 +36,8 @@ namespace SvcGuest
         public ProgramWrapper(string executableName, string arguments)
         {
             // initialize event log
-            if (!EventLog.SourceExists(EventSourceName))
-                EventLog.CreateEventSource(EventSourceName, EventCategory);
+            if (!EventLog.SourceExists(_eventSourceName))
+                EventLog.CreateEventSource(_eventSourceName, EventCategory);
 
             // set up flush log timer
             _flushLogBufferTimer.Elapsed += OnLogBufferFlushTimer;
@@ -65,7 +62,7 @@ namespace SvcGuest
             }
             catch (InvalidOperationException)
             {
-                EventLog.WriteEntry(EventSourceName, "Unable to read stdout/stderr", EventLogEntryType.FailureAudit);
+                EventLog.WriteEntry(_eventSourceName, "Unable to read stdout/stderr", EventLogEntryType.FailureAudit);
             }
         }
 
@@ -73,18 +70,18 @@ namespace SvcGuest
         {
             if (_p.HasExited)
             {
-                EventLog.WriteEntry(EventSourceName, "Main process already exited", EventLogEntryType.FailureAudit);
+                EventLog.WriteEntry(_eventSourceName, "Main process already exited", EventLogEntryType.FailureAudit);
                 return;
             }
             try
             {
-                EventLog.WriteEntry(EventSourceName, "Terminating main process", EventLogEntryType.Information);
+                EventLog.WriteEntry(_eventSourceName, "Terminating main process", EventLogEntryType.Information);
                 _p.CloseMainWindow();
                 _p.WaitForExit(KillWaitMs);
                 if (!_p.HasExited)
                 {
                     // failed to terminate
-                    EventLog.WriteEntry(EventSourceName, "Main process failed to gracefully shutdown", EventLogEntryType.FailureAudit);
+                    EventLog.WriteEntry(_eventSourceName, "Main process failed to gracefully shutdown", EventLogEntryType.FailureAudit);
                     _p.Kill();
                     _p.WaitForExit();
                 }
@@ -92,7 +89,7 @@ namespace SvcGuest
             catch (InvalidOperationException)
             {
                 // already exited
-                EventLog.WriteEntry(EventSourceName, "Unable to signal main process for termination, maybe exited already", EventLogEntryType.FailureAudit);
+                EventLog.WriteEntry(_eventSourceName, "Unable to signal main process for termination, maybe exited already", EventLogEntryType.FailureAudit);
             }
             _p.Close();
         }
@@ -108,7 +105,7 @@ namespace SvcGuest
                     Count = 1,
                     Message = message,
                     Type = channel ? EventLogEntryType.Error : EventLogEntryType.Information,
-                    lastHitTime = DateTime.Now,
+                    LastHitTime = DateTime.Now,
                 };
             }
             else
@@ -116,7 +113,7 @@ namespace SvcGuest
                 if (_lastLogEntry.Message == message)
                 {
                     _lastLogEntry.Count++;
-                    _lastLogEntry.lastHitTime = DateTime.Now;
+                    _lastLogEntry.LastHitTime = DateTime.Now;
                 }
                 else
                 {
@@ -128,7 +125,7 @@ namespace SvcGuest
 
         private void OnLogBufferFlushTimer(Object sender, EventArgs args)
         {
-            if ((DateTime.Now - _lastLogEntry.lastHitTime).TotalSeconds > LogMergeWindow)
+            if ((DateTime.Now - _lastLogEntry.LastHitTime).TotalSeconds > LogMergeWindow)
             {
                 CommitLog();
             }
@@ -138,14 +135,10 @@ namespace SvcGuest
         {
             if (_lastLogEntry != null)
             {
-                if (_lastLogEntry.Count > 1)
-                {
-                    EventLog.WriteEntry(EventSourceName, $"[Repeated {_lastLogEntry.Count} times in {(DateTime.Now - _lastLogEntry.lastHitTime).TotalSeconds} seconds] {_lastLogEntry.Message}", _lastLogEntry.Type);
-                }
-                else
-                {
-                    EventLog.WriteEntry(EventSourceName, _lastLogEntry.Message, _lastLogEntry.Type);
-                }
+                EventLog.WriteEntry(_eventSourceName,
+                    _lastLogEntry.Count > 1
+                        ? $"[Repeated {_lastLogEntry.Count} times in {(DateTime.Now - _lastLogEntry.LastHitTime).TotalSeconds} seconds] {_lastLogEntry.Message}"
+                        : _lastLogEntry.Message, _lastLogEntry.Type);
 
                 _lastLogEntry = null;
             }
