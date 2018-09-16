@@ -27,6 +27,14 @@ namespace SvcGuest
         private readonly string _eventSourceName = Globals.ServiceName;
         private const string EventCategory = "Application";
 
+        protected virtual void OnProgramExited(object sender, EventArgs e)
+        {
+            EventHandler handler = ProgramExited;
+            handler?.Invoke(sender, e);
+        }
+
+        public event EventHandler ProgramExited;
+
         // ReSharper disable once UnusedMember.Global
         public ProgramWrapper(string executableName) : this(executableName, null)
         {
@@ -49,7 +57,8 @@ namespace SvcGuest
             _p.StartInfo.RedirectStandardOutput = true;
             _p.OutputDataReceived += (sender, args) => OnMessage(args.Data, false);
             _p.ErrorDataReceived += (sender, args) => OnMessage(args.Data, true);
-            _p.Exited += (sender, args) => OnExit();
+            _p.EnableRaisingEvents = true;
+            _p.Exited += OnExit;
         }
 
         public void Start()
@@ -144,9 +153,9 @@ namespace SvcGuest
             }
         }
 
-        private void OnExit()
+        private void OnExit(object sender, EventArgs args)
         {
-
+            OnProgramExited(sender, args);
         }
     }
 }

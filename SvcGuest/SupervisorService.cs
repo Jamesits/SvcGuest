@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Channels;
 using System.ServiceProcess;
 
 namespace SvcGuest
@@ -62,6 +63,7 @@ namespace SvcGuest
                 // expect there is only one ExecStart=
                 var mainProgram = Globals.Config.ExecStart[0];
                 var wrapper = new ProgramWrapper(mainProgram.ProgramPath, mainProgram.Arguments);
+                wrapper.ProgramExited += (sender, eventArgs) => OnStop();
                 _execStartProgramPool.Add(wrapper);
                 wrapper.Start();
             }
