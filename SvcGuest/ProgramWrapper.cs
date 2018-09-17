@@ -179,7 +179,7 @@ namespace SvcGuest
                 children.Add(Convert.ToInt32(mo["ProcessID"]));
             }
 
-            children = children.OrderByDescending(i => i).ToList(); ;
+            children = children.OrderByDescending(i => i).ToList();
 
             return children;
         }

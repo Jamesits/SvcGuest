@@ -56,15 +56,6 @@ namespace SvcGuest
             var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (currentDirectory != null) Directory.SetCurrentDirectory(currentDirectory);
 
-            // read config
-            var configPath = ConfigPath ?? "default.service";
-            Globals.ConfigPath = configPath;
-            var config = new Config(configPath);
-            Globals.Config = config;
-            Globals.ServiceArguments = $"--config {configPath}";
-
-            Debug.WriteLine($"{IsImpersonatedProcess}");
-
             // If this is a helper process 
             if (IsImpersonatedProcess)
             {
@@ -110,8 +101,10 @@ namespace SvcGuest
                     Console.WriteLine("Self-contradictory arguments?");
                     // TODO: correct return value
                 } else if (Install) {
+                    LoadConfig();
                     InstallService();
                 } else if (Uninstall) {
+                    LoadConfig();
                     UninstallService();
                 }
                 else
@@ -136,8 +129,21 @@ namespace SvcGuest
             }
             else
             {
+                LoadConfig();
                 ServiceBase.Run(new SupervisorService());
             }
+        }
+
+        public void LoadConfig()
+        {
+            // read config
+            var configPath = ConfigPath ?? "default.service";
+            Globals.ConfigPath = configPath;
+            var config = new Config(configPath);
+            Globals.Config = config;
+            Globals.ServiceArguments = $"--config {configPath}";
+
+            Debug.WriteLine($"{IsImpersonatedProcess}");
         }
 
         private static void RegisterService(string filename)
