@@ -99,7 +99,7 @@ namespace SvcGuest
                 if (Install && Uninstall)
                 {
                     Console.WriteLine("Self-contradictory arguments?");
-                    // TODO: correct return value
+                    Environment.Exit(1);
                 } else if (Install) {
                     LoadConfig();
                     InstallService();
