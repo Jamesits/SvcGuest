@@ -60,7 +60,7 @@ namespace SvcGuest
             if (IsImpersonatedProcess)
             {
                 Debug.WriteLine("Executing impersonation helper routine");
-                
+                LoadConfig();
                 ExecConfig execConfig;
                 switch (ExecConfigLaunchType)
                 {
