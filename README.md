@@ -2,6 +2,8 @@
 
 Register any executable as a Windows service with a (partially) systemd-compatible unit config.
 
+[![Build status](https://dev.azure.com/nekomimiswitch/General/_apis/build/status/SvcGuest)](https://dev.azure.com/nekomimiswitch/General/_build/latest?definitionId=2)
+
 If you do not want to build it yourself, binary releases are in the [releases](https://github.com/Jamesits/SvcGuest/releases) page.
 
 ## Usage
