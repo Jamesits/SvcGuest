@@ -52,6 +52,8 @@ Features supported on the master branch (not the releases):
 * [ ] Install
     * [ ] WantedBy
     * [ ] RequiredBy
+    
+Master branch is unstable; if you have no issue running one of the releases and don't need any new function, then you don't need to upgrade.
 
 ## Notes
 
