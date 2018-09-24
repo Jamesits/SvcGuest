@@ -15,3 +15,6 @@ Type=simple
 User=Administrator
 # [Required]
 ExecStart=C:\Windows\System32\cmd.exe /c ping /t 127.0.0.1
+# [Optional, default=false]
+# If set to true, the service will remain in started status even if the program quits.
+RemainAfterExit=false

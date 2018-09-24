@@ -87,7 +87,7 @@ namespace SvcGuest.ServiceInterface
 
         private void StopOnError()
         {
-            base.Stop();
+            if (!Globals.Config.RemainAfterExit) Stop();
         }
 
         protected override void OnStop()

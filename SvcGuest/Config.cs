@@ -140,6 +140,7 @@ namespace SvcGuest
         public List<ExecConfig> ExecStart => GetExecConfigs("Service", "ExecStart");
         public string WorkingDirectory => GetValue("Service", "WorkingDirectory");
         public string User => GetValue("Service", "User");
+        public bool RemainAfterExit => GetValue<bool>("Service", "RemainAfterExit", false);
 
         // ======================= Config parser ============================
 
@@ -229,6 +230,24 @@ namespace SvcGuest
             var len = RawConfig[section][key].Count;
             if (len == 0 || RawConfig[section][key][len - 1].Length == 0) return null;
             return RawConfig[section][key][len - 1];
+        }
+
+        public T GetValue<T>(string section, string key)
+        {
+            return (T)Convert.ChangeType(GetValue(section, key), typeof(T));
+        }
+
+        public T GetValue<T>(string section, string key, T defaultValue)
+        {
+            try
+            {
+                return (T) Convert.ChangeType(GetValue(section, key), typeof(T));
+            }
+            catch
+            {
+                return defaultValue;
+            }
+                
         }
 
         // ReSharper disable once UnusedMember.Local
