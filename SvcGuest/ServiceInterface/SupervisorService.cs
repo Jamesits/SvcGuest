@@ -1,51 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.ServiceProcess;
+using SvcGuest.ProgramWrappers;
+using SvcGuest.Win32;
 
-namespace SvcGuest
+namespace SvcGuest.ServiceInterface
 {
     /// <summary>
     /// The service itself. Will be invoked by system.
     /// </summary>
     public class SupervisorService : ServiceBase
     {
-
-        public enum ServiceState
+        private DeepDarkWin32Fantasy.ServiceStatus _serviceStatus = new DeepDarkWin32Fantasy.ServiceStatus()
         {
-            // ReSharper disable InconsistentNaming
-            // ReSharper disable UnusedMember.Global
-            SERVICE_STOPPED = 0x00000001,
-            SERVICE_START_PENDING = 0x00000002,
-            SERVICE_STOP_PENDING = 0x00000003,
-            SERVICE_RUNNING = 0x00000004,
-            SERVICE_CONTINUE_PENDING = 0x00000005,
-            SERVICE_PAUSE_PENDING = 0x00000006,
-            SERVICE_PAUSED = 0x00000007,
-            // ReSharper restore InconsistentNaming
-            // ReSharper restore UnusedMember.Global
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct ServiceStatus
-        {
-            public int dwServiceType;
-            public ServiceState dwCurrentState;
-            public int dwControlsAccepted;
-            public int dwWin32ExitCode;
-            public int dwServiceSpecificExitCode;
-            public int dwCheckPoint;
-            public int dwWaitHint;
-        };
-
-        // ReSharper disable once StringLiteralTypo
-        [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern bool SetServiceStatus(IntPtr handle, ref ServiceStatus serviceStatus);
-        private ServiceStatus _serviceStatus = new ServiceStatus()
-        {
-            dwCurrentState = ServiceState.SERVICE_STOPPED,
+            dwCurrentState = DeepDarkWin32Fantasy.ServiceState.SERVICE_STOPPED,
             dwWaitHint = 1000,
 
         };
@@ -59,8 +29,8 @@ namespace SvcGuest
         protected override void OnStart(string[] args)
         {
             // Update the service state to Start Pending.  
-            _serviceStatus.dwCurrentState = ServiceState.SERVICE_START_PENDING;
-            SetServiceStatus(ServiceHandle, ref _serviceStatus);
+            _serviceStatus.dwCurrentState = DeepDarkWin32Fantasy.ServiceState.SERVICE_START_PENDING;
+            Advapi32.SetServiceStatus(ServiceHandle, ref _serviceStatus);
 
             if (Globals.Config.Type == ServiceType.Simple)
             {
@@ -69,7 +39,7 @@ namespace SvcGuest
                 if (Globals.Config.User == null)
                 {
                     var wrapper = new ManagedProgramWrapper(mainProgram.ProgramPath, mainProgram.Arguments);
-                    wrapper.ProgramExited += (sender, eventArgs) => OnStop();
+                    wrapper.ProgramExited += (sender, eventArgs) => StopOnError();
                     _execStartProgramPool.Add(wrapper);
                     wrapper.Start();
                 }
@@ -100,7 +70,7 @@ namespace SvcGuest
                         Debug.WriteLine(identity.ImpersonationLevel);
 
                         var wrapper = new NativeProgramWrapper("ExecStart", 0, identity.Token);
-                        wrapper.ProgramExited += (sender, eventArgs) => OnStop();
+                        wrapper.ProgramExited += (sender, eventArgs) => StopOnError();
                         _execStartProgramPool.Add(wrapper);
                         wrapper.Start();
                     }
@@ -111,17 +81,22 @@ namespace SvcGuest
             base.OnStart(args);
 
             // Update the service state to Running.  
-            _serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
-            SetServiceStatus(ServiceHandle, ref _serviceStatus);
+            _serviceStatus.dwCurrentState = DeepDarkWin32Fantasy.ServiceState.SERVICE_RUNNING;
+            Advapi32.SetServiceStatus(ServiceHandle, ref _serviceStatus);
+        }
+
+        private void StopOnError()
+        {
+            base.Stop();
         }
 
         protected override void OnStop()
         {
             Debug.WriteLine("Stopping service");
             // Update the service state to Stop Pending.  
-            _serviceStatus.dwCurrentState = ServiceState.SERVICE_STOP_PENDING;
+            _serviceStatus.dwCurrentState = DeepDarkWin32Fantasy.ServiceState.SERVICE_STOP_PENDING;
             _serviceStatus.dwWaitHint = ProgramWrapper.KillWaitMs;
-            SetServiceStatus(ServiceHandle, ref _serviceStatus);
+            Advapi32.SetServiceStatus(ServiceHandle, ref _serviceStatus);
 
             foreach (var wrapper in _execStartProgramPool)
             {
@@ -136,14 +111,8 @@ namespace SvcGuest
             base.OnStop();
 
             // Update the service state to Stopped.  
-            _serviceStatus.dwCurrentState = ServiceState.SERVICE_STOPPED;
-            SetServiceStatus(ServiceHandle, ref _serviceStatus);
-        }
-
-        // ReSharper disable once RedundantOverriddenMember
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
+            _serviceStatus.dwCurrentState = DeepDarkWin32Fantasy.ServiceState.SERVICE_STOPPED;
+            Advapi32.SetServiceStatus(ServiceHandle, ref _serviceStatus);
         }
     }
 }

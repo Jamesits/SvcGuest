@@ -7,6 +7,9 @@ using System.Security.Permissions;
 using System.ServiceProcess;
 using System.Threading;
 using McMaster.Extensions.CommandLineUtils;
+using SvcGuest.ProgramWrappers;
+using SvcGuest.ServiceInterface;
+using SvcGuest.Win32;
 
 namespace SvcGuest
 {

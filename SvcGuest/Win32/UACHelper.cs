@@ -3,12 +3,13 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable RedundantAssignment
 // ReSharper disable CommentTypo
 // ReSharper disable InconsistentNaming
 
-namespace SvcGuest
+namespace SvcGuest.Win32
 {
     /// <summary>
     /// Code from: https://code.msdn.microsoft.com/windowsapps/CSUACSelfElevation-644673d3

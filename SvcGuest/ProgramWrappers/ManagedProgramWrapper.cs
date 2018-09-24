@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace SvcGuest
+namespace SvcGuest.ProgramWrappers
 {
     /// <summary>
     /// Run external program as self, cannot switch user, but have managed events for program exit.

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+
 // ReSharper disable UnusedMember.Local
 // ReSharper disable MemberHidesStaticFromOuterClass
 // ReSharper disable CommentTypo
@@ -11,11 +12,23 @@ using Microsoft.Win32.SafeHandles;
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable StringLiteralTypo
 
-namespace SvcGuest
+namespace SvcGuest.Win32
 {
     internal class DeepDarkWin32Fantasy
     {
         #region Structs
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct ServiceStatus
+        {
+            public int dwServiceType;
+            public DeepDarkWin32Fantasy.ServiceState dwCurrentState;
+            public int dwControlsAccepted;
+            public int dwWin32ExitCode;
+            public int dwServiceSpecificExitCode;
+            public int dwCheckPoint;
+            public int dwWaitHint;
+        };
         public struct LUID
         {
             public int LowPart;
@@ -136,6 +149,21 @@ namespace SvcGuest
         #endregion Structs
 
         #region enums
+
+        internal enum ServiceState
+        {
+            // ReSharper disable InconsistentNaming
+            // ReSharper disable UnusedMember.Global
+            SERVICE_STOPPED = 0x00000001,
+            SERVICE_START_PENDING = 0x00000002,
+            SERVICE_STOP_PENDING = 0x00000003,
+            SERVICE_RUNNING = 0x00000004,
+            SERVICE_CONTINUE_PENDING = 0x00000005,
+            SERVICE_PAUSE_PENDING = 0x00000006,
+            SERVICE_PAUSED = 0x00000007,
+            // ReSharper restore InconsistentNaming
+            // ReSharper restore UnusedMember.Global
+        }
 
         /// <summary>
         /// The TOKEN_INFORMATION_CLASS enumeration type contains values that 
@@ -371,6 +399,9 @@ namespace SvcGuest
         }
         #endregion Structs
         #region Functions
+        [DllImport("advapi32.dll", SetLastError = true)]
+        public static extern bool SetServiceStatus(IntPtr handle, ref DeepDarkWin32Fantasy.ServiceStatus serviceStatus);
+
         [DllImport("Advapi32.dll")]
         public static extern bool LookupPrivilegeValueA(string lpSystemName, string lpName, ref DeepDarkWin32Fantasy.LUID lpLuid);
         [DllImport("advapi32.dll")]

@@ -4,7 +4,7 @@ using System.Configuration.Install;
 using System.ServiceProcess;
 using System.Text;
 
-namespace SvcGuest
+namespace SvcGuest.ServiceInterface
 {
     /// <summary>
     /// Handles installutil.exe

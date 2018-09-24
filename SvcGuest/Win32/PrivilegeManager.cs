@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 
-namespace SvcGuest
+namespace SvcGuest.Win32
 {
     public class CProcess
     {
@@ -70,9 +71,10 @@ namespace SvcGuest
             }
 
             priv.PrivilegeCount = 1;
-            priv.Privileges = new DeepDarkWin32Fantasy.LUID_AND_ATTRIBUTES();
-            priv.Privileges.Luid = luid;
-            priv.Privileges.Attributes = (int)((bEnablePrivilege == true) ? 0x00000002L : 0x00000004L);
+            priv.Privileges = new DeepDarkWin32Fantasy.LUID_AND_ATTRIBUTES
+            {
+                Luid = luid, Attributes = (int) ((bEnablePrivilege == true) ? 0x00000002L : 0x00000004L)
+            };
 
             if (!Kernel32.AdjustTokenPrivileges(hToken, false, ref priv, 0, IntPtr.Zero, ref RetLength))
             {

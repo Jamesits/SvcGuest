@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Management;
+using SvcGuest.Win32;
 using Timer = System.Timers.Timer;
 
-namespace SvcGuest
+namespace SvcGuest.ProgramWrappers
 {
     /// <summary>
     /// Unified interface for starting and stopping an external program.

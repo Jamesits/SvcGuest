@@ -4,8 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Timers;
+using SvcGuest.Win32;
 
-namespace SvcGuest
+namespace SvcGuest.ProgramWrappers
 {
     /// <summary>
     /// Run external program as another user.
