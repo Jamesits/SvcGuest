@@ -29,7 +29,7 @@ Features supported on the master branch (not the releases):
         * [ ] oneshot
         * [ ] idle
     * [x] User
-    * [ ] RemainAfterExit
+    * [x] RemainAfterExit
     * [ ] ExecStartPre
     * [x] ExecStart
     * [ ] ExecStartPost
