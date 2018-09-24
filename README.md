@@ -10,7 +10,7 @@ If you do not want to build it yourself, binary releases are in the [releases](h
 
 ### End User
 
-Assume you have a program that you want to run at startup (before user login) but don't want to use legacy dirty methods like Task Scheduler. You need to put a `SvcGuest.exe`, a `your-program.service` config file (an example can be found in the `examples` directory) into the same directory as the program (recommended, other directories are OK too).
+Assume you have a program that you want to run at startup (before user login) but don't want to use legacy dirty methods like Task Scheduler. You need to put a `SvcGuest.exe`, a `your-program.service` config file (an [example](examples/) is available) into the same directory as the program (recommended, other directories are OK too).
 
 * Right click on `svcguest.exe` -> "Run as administrator" to install all units interactively
 * `svcguest.exe --install --config your-program.service` to register the service
@@ -20,6 +20,8 @@ Assume you have a program that you want to run at startup (before user login) bu
 ### Software Distributor
 
 If you wrote a piece of software and doesn't want to adapt to the Windows Service interfaces yourself (since supervisors like `systemd` and `launchd` are widely available on other OSes, and it is sometimes tricky to implement these in some languages), you can distribute a binary release of `SvcGuest.exe` and your `program.service` config file with your software, and run `svcguest.exe --install --config program.service` during installation.
+
+[MPL 2.0 License](LICENSE) allows distributing `SvcGuest.exe` with your software for free with some limitations. Ask your lawyer for advice if in doubt.
 
 ## Features
 
