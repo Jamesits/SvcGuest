@@ -1,6 +1,6 @@
 # SvcGuest
 
-Register any executable as a Windows service with a (partially) systemd-compatible unit config.
+Register any executable as a Windows service with a (partially) systemd-compatible unit config. What SvcGuest can achieve is a lot like [NSSM (the Non-Sucking Service Manager)](https://nssm.cc) but SvcGuest is designed to be shipped along with a larger piece of software rather than be used by end user directly.
 
 [![Build status](https://dev.azure.com/nekomimiswitch/General/_apis/build/status/SvcGuest)](https://dev.azure.com/nekomimiswitch/General/_build/latest?definitionId=2)
 
