@@ -8,6 +8,7 @@ using SvcGuest.Win32;
 
 namespace SvcGuest.ServiceInterface
 {
+    /// <inheritdoc />
     /// <summary>
     /// The service itself. Will be invoked by system.
     /// </summary>
@@ -19,7 +20,8 @@ namespace SvcGuest.ServiceInterface
             dwWaitHint = 1000,
 
         };
-        private readonly List<ProgramWrapper> _execStartProgramPool = new List<ProgramWrapper>();
+        private readonly List<ProgramWrapper> _programPool = new List<ProgramWrapper>();
+        private bool _isErrorQuitting;
 
         public SupervisorService()
         {
@@ -32,61 +34,87 @@ namespace SvcGuest.ServiceInterface
             _serviceStatus.dwCurrentState = DeepDarkWin32Fantasy.ServiceState.SERVICE_START_PENDING;
             Advapi32.SetServiceStatus(ServiceHandle, ref _serviceStatus);
 
-            if (Globals.Config.Type == ServiceType.Simple)
+            base.OnStart(args);
+
+            // ExecStartPre
+            for (var i = 0; i < Globals.Config.ExecStartPre.Count; ++i)
             {
-                // expect there is only one ExecStart=
-                var mainProgram = Globals.Config.ExecStart[0];
-                if (Globals.Config.User == null)
-                {
-                    var wrapper = new ManagedProgramWrapper(mainProgram.ProgramPath, mainProgram.Arguments);
-                    wrapper.ProgramExited += (sender, eventArgs) => StopOnError();
-                    _execStartProgramPool.Add(wrapper);
-                    wrapper.Start();
-                }
-                else
-                {
-                    // Get the privilege for impersonation
-                    var currentProcess = new CProcess();
-                    if (!currentProcess.SetPrivilege("SeTcbPrivilege", true))
-                    {
-                        throw new InvalidOperationException("Required privilege SeTcbPrivilege failed");
-                    }
-                    if (!currentProcess.SetPrivilege("SeDelegateSessionUserImpersonatePrivilege", true))
-                    {
-                        throw new InvalidOperationException("Required privilege SeDelegateSessionUserImpersonatePrivilege failed");
-                    }
-
-                    // Get the identity we needed
-                    var identity = new WindowsIdentity(Globals.Config.User);
-                    if (identity.ImpersonationLevel != TokenImpersonationLevel.Impersonation)
-                    {
-                        throw new InvalidOperationException("Insufficient permission");
-                    }
-
-                    // Run the helper process as that identity
-                    using (WindowsImpersonationContext impersonatedUser = identity?.Impersonate())
-                    {
-                        Debug.WriteLine("After impersonation: " + WindowsIdentity.GetCurrent().Name);
-                        Debug.WriteLine(identity.ImpersonationLevel);
-
-                        var wrapper = new NativeProgramWrapper("ExecStart", 0, identity.Token);
-                        wrapper.ProgramExited += (sender, eventArgs) => StopOnError();
-                        _execStartProgramPool.Add(wrapper);
-                        wrapper.Start();
-                    }
-                }
-                
+                Run(Globals.Config.ExecStartPre[i], "ExecStartPre", i);
             }
 
-            base.OnStart(args);
+
+            // ExecStart
+            for (var i = 0; i < Globals.Config.ExecStart.Count; ++i)
+            {
+                Run(Globals.Config.ExecStart[i], "ExecStart", i, isAsync:false);
+            }
+
+            // ExecStartPost
+            for (var i = 0; i < Globals.Config.ExecStartPost.Count; ++i)
+            {
+                Run(Globals.Config.ExecStartPost[i], "ExecStartPost", i);
+            }
 
             // Update the service state to Running.  
             _serviceStatus.dwCurrentState = DeepDarkWin32Fantasy.ServiceState.SERVICE_RUNNING;
             Advapi32.SetServiceStatus(ServiceHandle, ref _serviceStatus);
         }
 
+        private void Run(ExecConfig e, string section, int seq, bool isAsync = true)
+        {
+            ProgramWrapper wrapper;
+            if (Globals.Config.User == null
+                || e.ExecLaunchPrivilegeLevel == ExecLaunchPrivilegeLevel.IgnoreUser
+                || e.ExecLaunchPrivilegeLevel == ExecLaunchPrivilegeLevel.Full)
+            {
+                wrapper = new ManagedProgramWrapper(e.ProgramPath, e.Arguments);
+                wrapper.Start();
+            }
+            else
+            {
+                // Get the privilege for impersonation
+                var currentProcess = new CProcess();
+                if (!currentProcess.SetPrivilege("SeTcbPrivilege", true))
+                {
+                    throw new InvalidOperationException("Required privilege SeTcbPrivilege failed");
+                }
+                if (!currentProcess.SetPrivilege("SeDelegateSessionUserImpersonatePrivilege", true))
+                {
+                    throw new InvalidOperationException("Required privilege SeDelegateSessionUserImpersonatePrivilege failed");
+                }
+
+                // Get the identity we needed
+                var identity = new WindowsIdentity(Globals.Config.User);
+                if (identity.ImpersonationLevel != TokenImpersonationLevel.Impersonation)
+                {
+                    throw new InvalidOperationException("Insufficient permission");
+                }
+
+                // Run the helper process as that identity
+                using (identity.Impersonate())
+                {
+                    Debug.WriteLine("After impersonation: " + WindowsIdentity.GetCurrent().Name);
+                    Debug.WriteLine(identity.ImpersonationLevel);
+
+                    wrapper = new NativeProgramWrapper(section, seq, identity.Token);
+                    wrapper.Start();
+                }
+            }
+
+            if (isAsync)
+            {
+                _programPool.Add(wrapper);
+                wrapper.ProgramExited += (sender, eventArgs) => StopOnError();
+            }
+            else
+            {
+                wrapper.WaitForExit();
+            }
+        }
+
         private void StopOnError()
         {
+            _isErrorQuitting = true;
             if (!Globals.Config.RemainAfterExit) Stop();
         }
 
@@ -98,7 +126,20 @@ namespace SvcGuest.ServiceInterface
             _serviceStatus.dwWaitHint = ProgramWrapper.KillWaitMs;
             Advapi32.SetServiceStatus(ServiceHandle, ref _serviceStatus);
 
-            foreach (var wrapper in _execStartProgramPool)
+            // ExecStop
+            if (_isErrorQuitting)
+                for (var i = 0; i < Globals.Config.ExecStop.Count; ++i)
+                {
+                    Run(Globals.Config.ExecStop[i], "ExecStop", i, isAsync: false);
+                }
+
+            // ExecStopPost
+            for (var i = 0; i < Globals.Config.ExecStopPost.Count; ++i)
+            {
+                Run(Globals.Config.ExecStopPost[i], "ExecStopPost", i);
+            }
+
+            foreach (var wrapper in _programPool)
             {
                 wrapper.Stop();
             }

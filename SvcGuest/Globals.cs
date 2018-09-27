@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using SvcGuest.ProgramWrappers;
 
 namespace SvcGuest
 {
@@ -17,5 +19,7 @@ namespace SvcGuest
         public static string ExecutablePath => System.Reflection.Assembly.GetExecutingAssembly().Location;
 
         public static string ExecutableDirectory => Path.GetDirectoryName(ExecutablePath);
+
+        public static List<ProgramWrapper> ProgramPool { get; } = new List<ProgramWrapper>();
     }
 }

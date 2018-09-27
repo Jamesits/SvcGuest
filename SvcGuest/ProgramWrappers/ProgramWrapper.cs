@@ -12,7 +12,7 @@ namespace SvcGuest.ProgramWrappers
     /// Unified interface for starting and stopping an external program.
     /// Also provides basic functions for logging.
     /// </summary>
-    abstract class ProgramWrapper
+    public abstract class ProgramWrapper
     {
         #region Logging
         protected const int LogMergeWindow = 5; // seconds
@@ -115,6 +115,11 @@ namespace SvcGuest.ProgramWrappers
             FlushLogBufferTimer.Elapsed += OnLogBufferFlushTimer;
         }
 
+        public virtual void WaitForExit()
+        {
+            throw new NotImplementedException();
+        }
+  
         public static void QuitProcess(Process p)
         {
             if (p.HasExited)

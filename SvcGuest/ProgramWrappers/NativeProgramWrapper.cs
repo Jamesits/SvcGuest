@@ -26,6 +26,8 @@ namespace SvcGuest.ProgramWrappers
         private readonly IntPtr _identityToken;
 
         public int ChildProcessId => _pi.dwProcessId;
+        private Process _p;
+        public Process P => IfChildProcessAlive() ? _p : null;
 
         private readonly Timer _checkChildProcessTimer = new Timer()
         {
@@ -62,17 +64,22 @@ namespace SvcGuest.ProgramWrappers
                 ))
                 throw new Win32Exception();
             Debug.WriteLine($"Helper process at {ChildProcessId}");
+            _p = Process.GetProcessById(ChildProcessId);
             _checkChildProcessTimer.Elapsed += OnCheckChildProcessTimer;
         }
 
         public override void Stop()
         {
             if (!IfChildProcessAlive()) return;
-            var cp = Process.GetProcessById(ChildProcessId);
-            QuitProcess(cp);
+            QuitProcess(_p);
         }
 
-        public bool IfChildProcessAlive()
+        public override void WaitForExit()
+        {
+            if (IfChildProcessAlive()) _p.WaitForExit();
+        }
+
+        private bool IfChildProcessAlive()
         {
             return GetChildProcessIds(SelfProcessId).Contains(ChildProcessId);
         }

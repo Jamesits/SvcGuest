@@ -57,5 +57,10 @@ namespace SvcGuest.ProgramWrappers
         {
             OnProgramExited(sender, args);
         }
+
+        public override void WaitForExit()
+        {
+            _p.WaitForExit();
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -139,7 +140,9 @@ namespace SvcGuest
         }
 
         public List<ExecConfig> ExecStartPre => GetExecConfigs("Service", "ExecStartPre");
-        public List<ExecConfig> ExecStart => GetExecConfigs("Service", "ExecStart");
+        public List<ExecConfig> ExecStart => Type == ServiceType.Simple ? 
+            GetExecConfigs("Service", "ExecStart") : 
+            GetExecConfigs("Service", "ExecStart", 1);
         public List<ExecConfig> ExecStartPost => GetExecConfigs("Service", "ExecStartPost");
         public List<ExecConfig> ExecStop => GetExecConfigs("Service", "ExecStop");
         public List<ExecConfig> ExecStopPost => GetExecConfigs("Service", "ExecStopPost");
@@ -265,11 +268,12 @@ namespace SvcGuest
             return RawConfig[section][key];
         }
 
-        private List<ExecConfig> GetExecConfigs(string section, string key)
+        private List<ExecConfig> GetExecConfigs(string section, string key, int limit = 0)
         {
             if (!RawConfig.ContainsKey(section) || !RawConfig[section].ContainsKey(key)) return null;
             var len = RawConfig[section][key].Count;
             if (len == 0) return null;
+            if (limit != 0) RawConfig[section][key] = RawConfig[section][key].Take(limit).ToList();
             return RawConfig[section][key].Select(x => new ExecConfig(x)).ToList();
         }
     }
