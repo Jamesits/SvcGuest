@@ -137,10 +137,16 @@ namespace SvcGuest
                 }
             }
         }
+
+        public List<ExecConfig> ExecStartPre => GetExecConfigs("Service", "ExecStartPre");
         public List<ExecConfig> ExecStart => GetExecConfigs("Service", "ExecStart");
+        public List<ExecConfig> ExecStartPost => GetExecConfigs("Service", "ExecStartPost");
+        public List<ExecConfig> ExecStop => GetExecConfigs("Service", "ExecStop");
+        public List<ExecConfig> ExecStopPost => GetExecConfigs("Service", "ExecStopPost");
+
         public string WorkingDirectory => GetValue("Service", "WorkingDirectory");
         public string User => GetValue("Service", "User");
-        public bool RemainAfterExit => GetValue<bool>("Service", "RemainAfterExit", false);
+        public bool RemainAfterExit => GetValue("Service", "RemainAfterExit", false);
 
         // ======================= Config parser ============================
 
@@ -232,12 +238,12 @@ namespace SvcGuest
             return RawConfig[section][key][len - 1];
         }
 
-        public T GetValue<T>(string section, string key)
+        private T GetValue<T>(string section, string key)
         {
             return (T)Convert.ChangeType(GetValue(section, key), typeof(T));
         }
 
-        public T GetValue<T>(string section, string key, T defaultValue)
+        private T GetValue<T>(string section, string key, T defaultValue)
         {
             try
             {
