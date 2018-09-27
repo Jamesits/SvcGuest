@@ -25,7 +25,7 @@ If you wrote a piece of software and doesn't want to adapt to the Windows Servic
 
 ## Features
 
-Features supported on the master branch (not the releases):
+Features supported on the master branch (for the releases, see the `.service` file provided):
 
 * [x] Unit
     * [x] Description
@@ -38,11 +38,11 @@ Features supported on the master branch (not the releases):
         * [ ] idle
     * [x] User
     * [x] RemainAfterExit
-    * [ ] ExecStartPre
+    * [x] ExecStartPre
     * [x] ExecStart
-    * [ ] ExecStartPost
-    * [ ] ExecStop
-    * [ ] ExecStopPost
+    * [x] ExecStartPost
+    * [x] ExecStop
+    * [x] ExecStopPost
     * [ ] Environment
     * [ ] EnvironmentFile
     * [ ] PassEnvironment
@@ -53,7 +53,7 @@ Features supported on the master branch (not the releases):
     * [ ] WantedBy
     * [ ] RequiredBy
     
-Master branch is unstable; if you have no issue running one of the releases and don't need any new function, then you don't need to upgrade.
+Master branch is unstable; please use a tag. If you have no issue running one of the releases and don't need any new function, then you don't need to upgrade.
 
 ## Notes
 
