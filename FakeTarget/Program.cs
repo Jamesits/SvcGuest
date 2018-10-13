@@ -1,35 +1,85 @@
 ﻿using System;
-using McMaster.Extensions.CommandLineUtils;
+using System.Linq;
 
 namespace FakeTarget
 {
+    internal class FuncDef
+    {
+        public delegate int FunctionType(string[] args);
+        public FuncDef(string command, FunctionType function, string help = null, bool hideFromHelp = false)
+        {
+            Command = command;
+            Function = function;
+            Help = help;
+            HideFromHelp = hideFromHelp;
+        }
 
-    [Command(Name = "FakeTarget.exe", Description = "Host any program as a Windows service.")]
+        public string Command { get; }
+        public FunctionType Function { get; }
+        public string Help { get; }
+        public bool HideFromHelp { get; }
+
+    }
     class Program
     {
-        #region Command Line Arguments
-        // ReSharper disable UnassignedGetOnlyAutoProperty
-        [Option("--file", Description = "Echo to which file")]
-        public string Filename { get; }
 
-        [Option("--onquit", Description = "Echo on quit")]
-        public string QuitTest { get; }
+        internal static readonly FuncDef[] Functions =
+        {
+            new FuncDef("help", Help, "Print this message"), 
+        };
 
-        // ReSharper restore UnassignedGetOnlyAutoProperty
+        internal static int Help(string[] args)
+        {
+            Console.WriteLine("A test program that does harmless pre-defined things for debug use.\n\nUsage: FakeTarget.exe [Options]\n\nOptions:");
+            foreach (var func in Functions)
+            {
+                if (!func.HideFromHelp)
+                    Console.WriteLine($"  -{func.Command}\t\t{func.Help}");
+            }
+            Console.WriteLine();
+            return 0;
+        }
 
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        public static int Main(string[] args) => CommandLineApplication.Execute<Program>(args);
-        #endregion
-
-
-        // ReSharper disable once UnusedMember.Global
-        public void OnExecute()
-        {
+        public static int Main(string[] args) {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomainUnhandledException;
 
             // execute
+            var commandStartIndexList = args.Select((value, index) => new { value, index }).Where(item => item.value.StartsWith("-")).Select(item => item.index).ToList();
+
+            for (var i = 0; i < commandStartIndexList.Count; ++i)
+            {
+                string[] currentArgs;
+                try
+                {
+                    currentArgs = args.Skip(commandStartIndexList[i])
+                        .Take(commandStartIndexList[i + 1] - commandStartIndexList[i]).ToArray();
+                    
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    currentArgs = args.Skip(commandStartIndexList[i]).Take(args.Length - commandStartIndexList[i]).ToArray();
+                }
+
+                var currentCommand = currentArgs[0].TrimStart('-');
+                var currentFuncDef = Functions.Where(def =>
+                        string.Equals(def.Command.ToLower(), currentCommand.ToLower(), StringComparison.Ordinal))
+                    .ToArray();
+                if (currentFuncDef.Length > 0)
+                {
+                    var ret = currentFuncDef[0].Function(currentArgs);
+                    if (ret != 0) throw new InvalidOperationException($"Failed to execute command {string.Join(" ", currentArgs)}");
+                }
+                else
+                {
+                    // command not found
+                    throw new NotSupportedException($"Unknown command: {currentCommand}");
+                }
+            }
+
+            return 0;
         }
 
         /// <summary>
