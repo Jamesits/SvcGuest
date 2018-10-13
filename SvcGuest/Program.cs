@@ -158,7 +158,7 @@ namespace SvcGuest
                     UseShellExecute = false,
                     WorkingDirectory = Environment.CurrentDirectory,
                     FileName = Globals.ExecutablePath,
-                    Arguments = $"--install --config {filename}",
+                    Arguments = $"--install --config \"{filename}\"",
                 }
             };
 
