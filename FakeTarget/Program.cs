@@ -31,7 +31,7 @@ namespace FakeTarget
         internal static int Help(string[] args)
         {
             Console.WriteLine("A test program that does harmless pre-defined things for debug use.\n\nUsage: FakeTarget.exe [Options]\n\nOptions:");
-            foreach (var func in Functions)
+            foreach (var func in Functions.OrderBy(funcDef => funcDef.Command))
             {
                 if (!func.HideFromHelp)
                     Console.WriteLine($"  -{func.Command}\t\t{func.Help}");
