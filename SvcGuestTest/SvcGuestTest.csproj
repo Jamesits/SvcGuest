@@ -51,16 +51,25 @@
   <ItemGroup>
     <Compile Include="ExecConfigTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="OverallTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="TestConfigs\basic.service">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FakeTarget\FakeTarget.csproj">
+      <Project>{87c70783-0936-42c8-8aec-fa1faa879153}</Project>
+      <Name>FakeTarget</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SvcGuest\SvcGuest.csproj">
       <Project>{2b8ec1b0-3fcc-48a3-98aa-a31a2d44eff0}</Project>
       <Name>SvcGuest</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
