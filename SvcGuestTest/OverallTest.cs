@@ -15,5 +15,8 @@ namespace SvcGuestTest
             Assert.IsTrue(File.Exists(Path.Combine(ProgramDirectory, "SvcGuest.exe")));
             Assert.IsTrue(File.Exists(Path.Combine(ProgramDirectory, "FakeTarget.exe")));
         }
+
+        // TODO: test the assembly with some config file
+        // but it requires elevation and cannot be run under Azure DevOps hosted agent.
     }
 }

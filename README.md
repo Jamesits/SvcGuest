@@ -4,9 +4,13 @@ Register any executable as a Windows service with a (partially) systemd-compatib
 
 [![Build status](https://dev.azure.com/nekomimiswitch/General/_apis/build/status/SvcGuest)](https://dev.azure.com/nekomimiswitch/General/_build/latest?definitionId=2)
 
-If you do not want to build it yourself, binary releases are in the [releases](https://github.com/Jamesits/SvcGuest/releases) page.
+Binary releases are in the [releases](https://github.com/Jamesits/SvcGuest/releases) for your convenience. 
 
 ## Usage
+
+### Software Distributor
+
+If you wrote a piece of software and doesn't want to adapt to the Windows Service interfaces yourself, you can distribute a binary release of `SvcGuest.exe` and your `program.service` config file ([example](examples/)) with your software, and run `svcguest.exe --install --config program.service` (remember to elevate!) during your software installation.
 
 ### End User
 
@@ -16,10 +20,6 @@ Assume you have a program that you want to run at startup (before user login) bu
 * `svcguest.exe --install --config your-program.service` to register the service
 * `svcguest.exe --uninstall --config your-program.service` to remove the service
 * `svcguest.exe --help` for a complete help
-
-### Software Distributor
-
-If you wrote a piece of software and doesn't want to adapt to the Windows Service interfaces yourself (since supervisors like `systemd` and `launchd` are widely available on other OSes, and it is sometimes tricky to implement these in some languages), you can distribute a binary release of `SvcGuest.exe` and your `program.service` config file with your software, and run `svcguest.exe --install --config program.service` during installation.
 
 [MPL 2.0 License](LICENSE) allows distributing `SvcGuest.exe` with your software for free with some limitations. Ask your lawyer for advice if in doubt.
 
@@ -52,11 +52,11 @@ Features supported on the master branch (for the releases, see the `.service` fi
 * [ ] Install
     * [ ] WantedBy
     * [ ] RequiredBy
-    
-Master branch is unstable; please use a tag. If you have no issue running one of the releases and don't need any new function, then you don't need to upgrade.
 
 ## Notes
 
-If you consider this helpful, please consider buying me a coffee.
+Master branch is unstable; please use a release tag. It is recommended to upgrade to the latest revision; but if you have no issue running one of the releases and don't need any new function, then you don't need to upgrade to a later minor version.
+
+If this project is helpful to you, please consider buying me a coffee.
 
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/Jamesits) or [PayPal](https://paypal.me/Jamesits)
