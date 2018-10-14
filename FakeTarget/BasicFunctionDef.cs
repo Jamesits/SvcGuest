@@ -30,7 +30,7 @@ namespace FakeTarget
             int chars = Convert.ToInt32(args[1]);
             string output = loremIpsum;
             while (output.Length < chars) output += loremIpsum;
-            Program.WriteLine(output.Take(chars).ToString());
+            Program.WriteLine(string.Join("", output.Take(chars).ToArray()));
             return 0;
         }
 
