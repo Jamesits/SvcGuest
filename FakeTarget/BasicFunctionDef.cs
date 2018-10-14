@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 
 namespace FakeTarget
@@ -48,6 +49,16 @@ namespace FakeTarget
         internal static int GetCurrentUsername(string[] args)
         {
             Program.WriteLine(System.Security.Principal.WindowsIdentity.GetCurrent().Name);
+            return 0;
+        }
+
+        internal static int GetEnvironmentVariables(string[] args)
+        {
+            foreach (DictionaryEntry env in System.Environment.GetEnvironmentVariables())
+            {
+                Program.WriteLine($"{env.Key}={env.Value}");
+            }
+
             return 0;
         }
     }

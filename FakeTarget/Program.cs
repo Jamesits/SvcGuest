@@ -35,6 +35,7 @@ namespace FakeTarget
             new FuncDef("quit", BasicFunctionDef.Quit, "Quit program with optional ExitCode"),
             new FuncDef("getUser", BasicFunctionDef.GetCurrentUsername, "Echo the username of current security context"), 
             new FuncDef("setOutput", SetOutput, "Set the output mode to stdout|stderr|filename"), 
+            new FuncDef("getEnv", BasicFunctionDef.GetEnvironmentVariables, "Echo a list of system environment variables in key=value format"), 
         };
 
         internal static int Help(string[] args)
