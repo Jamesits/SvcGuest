@@ -65,7 +65,7 @@ namespace SvcGuestTest
         private bool AssertStringNotInclude(List<string> source, List<string> blockedList)
         {
             foreach (var s in blockedList)
-                if (!source.Any(x => string.Equals(x, s, StringComparison.Ordinal)))
+                if (source.Any(x => string.Equals(x, s, StringComparison.Ordinal)))
                     return false;
             return true;
         }
