@@ -270,7 +270,7 @@ namespace SvcGuest
 
         private List<ExecConfig> GetExecConfigs(string section, string key, int limit = 0)
         {
-            if (!RawConfig.ContainsKey(section) || !RawConfig[section].ContainsKey(key)) return null;
+            if (!RawConfig.ContainsKey(section) || !RawConfig[section].ContainsKey(key)) return new List<ExecConfig>();
             var len = RawConfig[section][key].Count;
             if (len == 0) return null;
             if (limit != 0) RawConfig[section][key] = RawConfig[section][key].Take(limit).ToList();

@@ -31,6 +31,7 @@ namespace SvcGuest.ServiceInterface
         protected override void OnStart(string[] args)
         {
             // Update the service state to Start Pending.  
+            Debug.WriteLine("Setting service status to start pending");
             _serviceStatus.dwCurrentState = DeepDarkWin32Fantasy.ServiceState.SERVICE_START_PENDING;
             Advapi32.SetServiceStatus(ServiceHandle, ref _serviceStatus);
 
@@ -46,7 +47,7 @@ namespace SvcGuest.ServiceInterface
             // ExecStart
             for (var i = 0; i < Globals.Config.ExecStart.Count; ++i)
             {
-                Run(Globals.Config.ExecStart[i], "ExecStart", i, isAsync:false);
+                Run(Globals.Config.ExecStart[i], "ExecStart", i);
             }
 
             // ExecStartPost
@@ -56,6 +57,7 @@ namespace SvcGuest.ServiceInterface
             }
 
             // Update the service state to Running.  
+            Debug.WriteLine("Setting service status to running");
             _serviceStatus.dwCurrentState = DeepDarkWin32Fantasy.ServiceState.SERVICE_RUNNING;
             Advapi32.SetServiceStatus(ServiceHandle, ref _serviceStatus);
         }
