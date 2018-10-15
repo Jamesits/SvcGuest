@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -61,6 +62,14 @@ namespace SvcGuestTest
             return true;
         }
 
+        private bool AssertStringNotInclude(List<string> source, List<string> blockedList)
+        {
+            foreach (var s in blockedList)
+                if (!source.Any(x => string.Equals(x, s, StringComparison.Ordinal)))
+                    return false;
+            return true;
+        }
+
         // test the assembly with some config file
         [TestMethod]
         public void BasicFunctionalityTest()
@@ -85,7 +94,7 @@ namespace SvcGuestTest
                 RunAndWaitForOutput(@"-D --config TestConfigs\LaunchSequenceTest.service", out var stdout, out var stderr),
                 $"stdout: \n{string.Join("\n", stdout)}\nstderr: \n{string.Join("\n", stderr)}"
                 );
-            AssertStringSequence(stdout, new List<string>()
+            Assert.IsTrue(AssertStringSequence(stdout, new List<string>()
             {
                 "ExecStartPre1",
                 "ExecStartPre2",
@@ -96,7 +105,7 @@ namespace SvcGuestTest
                 "ExecStop2",
                 "ExecStopPost1",
                 "ExecStopPost2",
-            });
+            }));
         }
 
         [TestMethod]
@@ -106,7 +115,7 @@ namespace SvcGuestTest
                 RunAndWaitForOutput(@"-D --config TestConfigs\LaunchSequenceTestWithError.service", out var stdout, out var stderr),
                 $"stdout: \n{string.Join("\n", stdout)}\nstderr: \n{string.Join("\n", stderr)}"
                 );
-            AssertStringSequence(stdout, new List<string>()
+            Assert.IsTrue(AssertStringSequence(stdout, new List<string>()
             {
                 "ExecStartPre1",
                 "ExecStartPre2",
@@ -115,7 +124,12 @@ namespace SvcGuestTest
                 "ExecStart1",
                 "ExecStopPost1",
                 "ExecStopPost2",
-            });
+            }));
+            Assert.IsTrue(AssertStringNotInclude(stdout, new List<string>()
+            {
+                "ExecStop1",
+                "ExecStop2",
+            }));
         }
     }
 }
