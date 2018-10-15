@@ -60,6 +60,7 @@ namespace SvcGuest.ProgramWrappers
 
         public override void Stop()
         {
+            if (HasExited) return;
             QuitProcess(_p);
         }
 

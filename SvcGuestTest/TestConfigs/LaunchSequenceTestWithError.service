@@ -13,3 +13,4 @@ ExecStartPost=FakeTarget.exe -delay 1000 -echo ExecStartPost1
 ExecStop=FakeTarget.exe -delay 1000 -echo ExecStop1
 ExecStop=FakeTarget.exe -echo ExecStop2
 ExecStopPost=FakeTarget.exe -echo ExecStopPost1
+ExecStopPost=FakeTarget.exe -echo ExecStopPost2

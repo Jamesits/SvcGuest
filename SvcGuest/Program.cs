@@ -142,7 +142,6 @@ namespace SvcGuest
                     var s = new Supervisor();
                     s.Start();
                     s.WaitForExit();
-                    s.Stop();
                 }
                 else
                 {
@@ -263,7 +262,7 @@ namespace SvcGuest
         /// <param name="e"></param>
         private static void OnProcessExit(object sender, EventArgs e)
         {
-            LogMuxer.Instance.Info("Being killed, cleaning up...");
+            LogMuxer.Instance.Info("Quitting");
             Wrapper?.Stop();
 
             // shut down all child processes

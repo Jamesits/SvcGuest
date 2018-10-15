@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using SvcGuest.Logging;
 using SvcGuest.ProgramWrappers;
 using SvcGuest.Win32;
 
@@ -19,6 +20,7 @@ namespace SvcGuest.ServiceInterface
 
         private readonly List<ProgramWrapper> _programPool = new List<ProgramWrapper>();
         private bool hasStartedSuccessfully;
+        private bool hasStopped;
 
         public delegate void SupervisorQuitHandler(object sender, EventArgs e);
         public event SupervisorQuitHandler OnQuit;
@@ -26,38 +28,40 @@ namespace SvcGuest.ServiceInterface
         internal void Start()
         {
             // ExecStartPre
-            Debug.WriteLine("Executing ExecStartPre");
+            LogMuxer.Instance.Debug("Executing ExecStartPre");
             for (var i = 0; i < Globals.Config.ExecStartPre.Count; ++i)
             {
                 Run(Globals.Config.ExecStartPre[i], "ExecStartPre", i, isAsync: false);
             }
 
             // ExecStart
-            Debug.WriteLine("Executing ExecStart");
+            LogMuxer.Instance.Debug("Executing ExecStart");
             for (var i = 0; i < Globals.Config.ExecStart.Count; ++i)
             {
                 Run(Globals.Config.ExecStart[i], "ExecStart", i);
             }
 
             // ExecStartPost
-            Debug.WriteLine("Executing ExecStartPost");
+            LogMuxer.Instance.Debug("Executing ExecStartPost");
             for (var i = 0; i < Globals.Config.ExecStartPost.Count; ++i)
             {
                 Run(Globals.Config.ExecStartPost[i], "ExecStartPost", i, isAsync: false);
             }
 
+            hasStopped = false;
         }
 
         internal void Stop()
         {
-            Debug.WriteLine("Killing child processes");
+            if (hasStopped) return;
+            LogMuxer.Instance.Debug("Killing child processes");
             foreach (var wrapper in _programPool)
             {
                 wrapper.Stop();
             }
 
             // First we notify all running process to quit
-            Debug.WriteLine("Killing subprocesses");
+            LogMuxer.Instance.Debug("Killing subprocesses");
             foreach (var pid in ProgramWrapper.GetChildProcessIds(ProgramWrapper.SelfProcessId))
             {
                 ProgramWrapper.QuitProcess(Process.GetProcessById(pid));
@@ -67,15 +71,15 @@ namespace SvcGuest.ServiceInterface
             // only if the service started successfully
             if (hasStartedSuccessfully)
             {
-                Debug.WriteLine("Executing ExecStop");
+                LogMuxer.Instance.Debug("Executing ExecStop");
                 for (var i = 0; i < Globals.Config.ExecStop.Count; ++i)
                 {
                     Run(Globals.Config.ExecStop[i], "ExecStop", i, isAsync: false);
                 }
             }
-            
+
             // ExecStopPost
-            Debug.WriteLine("Executing ExecStopPost");
+            LogMuxer.Instance.Debug("Executing ExecStopPost");
             for (var i = 0; i < Globals.Config.ExecStopPost.Count; ++i)
             {
                 Run(Globals.Config.ExecStopPost[i], "ExecStopPost", i, isAsync: false);
@@ -83,6 +87,7 @@ namespace SvcGuest.ServiceInterface
 
             OnQuit?.Invoke(this, null);
 
+            hasStopped = true;
         }
 
         internal void WaitForExit()
@@ -131,8 +136,7 @@ namespace SvcGuest.ServiceInterface
                 // Run the helper process as that identity
                 using (identity.Impersonate())
                 {
-                    Debug.WriteLine("After impersonation: " + WindowsIdentity.GetCurrent().Name);
-                    Debug.WriteLine(identity.ImpersonationLevel);
+                    LogMuxer.Instance.Debug($"After impersonation, User={WindowsIdentity.GetCurrent().Name}, ImpersonationLevel={identity.ImpersonationLevel}");;
 
                     wrapper = new NativeProgramWrapper(section, seq, identity.Token);
                     wrapper.Start();

@@ -71,6 +71,7 @@ namespace SvcGuest.ProgramWrappers
 
         public override void Stop()
         {
+            if (HasExited) return;
             if (!IfChildProcessAlive()) return;
             QuitProcess(_p);
         }
