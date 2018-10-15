@@ -66,8 +66,8 @@ namespace SvcGuest
             // If this is a helper process 
             if (IsImpersonatedProcess)
             {
-                LogMuxer.Instance.Debug("Executing impersonation helper routine");
                 LoadConfig();
+                LogMuxer.Instance.Debug("Executing impersonation helper routine");
                 ExecConfig execConfig;
                 switch (ExecConfigLaunchType)
                 {
@@ -91,6 +91,16 @@ namespace SvcGuest
 
             if (Environment.UserInteractive)
             {
+                var configOk = true;
+                try
+                {
+                    LoadConfig();
+                }
+                catch
+                {
+                    configOk = false;
+                }
+                
                 LogMuxer.Instance.Debug($"IsElevated: {UACHelper.IsRunAsAdmin()}");
                 LogMuxer.Instance.Debug($"Cmdline: {Environment.CommandLine}");
 
@@ -108,16 +118,27 @@ namespace SvcGuest
                     LogMuxer.Instance.Fatal("Self-contradictory arguments?");
                     Environment.Exit(1);
                 } else if (Install) {
-                    LoadConfig();
+                    if (!configOk)
+                    {
+                        LogMuxer.Instance.Fatal("Cannot read config");
+                        Environment.Exit(1);
+                    }
                     InstallService();
                 } else if (Uninstall) {
-                    LoadConfig();
+                    if (!configOk)
+                    {
+                        LogMuxer.Instance.Fatal("Cannot read config");
+                        Environment.Exit(1);
+                    }
                     UninstallService();
                 }
                 else if (RunOnly)
                 {
-                    LoadConfig();
-                    // TODO: run the commands without a service
+                    if (!configOk)
+                    {
+                        LogMuxer.Instance.Fatal("Cannot read config");
+                        Environment.Exit(1);
+                    }
                     var s = new Supervisor();
                     s.Start();
                     s.WaitForExit();

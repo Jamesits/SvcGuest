@@ -5,33 +5,9 @@ using System.Timers;
 
 namespace SvcGuest.Logging
 {
-    class LegacyEventLogger : Logger
+    internal class LegacyEventLogger : Logger
     {
-        protected static string EventSourceName
-        {
-            get
-            {
-                var value = Globals.ServiceName ?? "SvcGuest";
-                // initialize event log
-                try
-                {
-                    if (!EventLog.SourceExists(value))
-                        EventLog.CreateEventSource(value, EventCategory);
-                }
-                catch (SecurityException)
-                {
-                    // do not have privilege
-                    System.Diagnostics.Debug.WriteLine("Insufficient privilege to create or query EventLog");
-                }
-                catch (ArgumentException)
-                {
-                    // already created
-                    System.Diagnostics.Debug.WriteLine("The required EventLog is already created but check for its existence failed");
-                }
-                
-                return value;
-            }
-        }
+        protected static string EventSourceName => Globals.ServiceName ?? "SvcGuest";
         protected const string EventCategory = "Application";
 
         protected const int LogMergeWindow = 5; // seconds
@@ -112,6 +88,25 @@ namespace SvcGuest.Logging
 
         internal LegacyEventLogger()
         {
+            // initialize event log
+            try
+            {
+                if (!EventLog.SourceExists(EventSourceName))
+                    EventLog.CreateEventSource(EventSourceName, EventCategory);
+            }
+            catch (SecurityException)
+            {
+                // do not have privilege
+                System.Diagnostics.Debug.WriteLine("Insufficient privilege to create or query EventLog");
+                throw;
+            }
+            catch (ArgumentException)
+            {
+                // already created
+                System.Diagnostics.Debug.WriteLine("The required EventLog is already created but check for its existence failed");
+                throw;
+            }
+
             // set up flush log timer
             FlushLogBufferTimer.Elapsed += OnLogBufferFlushTimer;
         }

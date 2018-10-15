@@ -2,7 +2,7 @@
 
 namespace SvcGuest.Logging
 {
-    class LogMuxer : Logger
+    internal class LogMuxer : Logger
     {
 
         public static LogMuxer Instance { get; } = new LogMuxer();
@@ -11,8 +11,20 @@ namespace SvcGuest.Logging
         {
             new DebugLogger(),
             new ConsoleLogger(),
-            new LegacyEventLogger(),
         };
+
+        public LogMuxer()
+        {
+            try
+            {
+                _loggers.Add(new LegacyEventLogger());
+            }
+            catch
+            {
+                // I'm fine
+                Instance.Warning("Unable to attach a LegacyEventLogger, maybe because lack of privilege?");
+            }
+        }
 
         internal override void Debug(string s)
         {
