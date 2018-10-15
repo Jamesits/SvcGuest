@@ -63,10 +63,13 @@ namespace SvcGuestTest
 
         // test the assembly with some config file
         [TestMethod]
-        [Timeout(2000)]
         public void BasicFunctionalityTest()
         {
-            Assert.AreEqual(0, RunAndWaitForOutput(@"-D --config TestConfigs\BasicFunctionalityTest.service", out var stdout, out var stderr));
+            Assert.AreEqual(
+                0, 
+                RunAndWaitForOutput(@"-D --config TestConfigs\BasicFunctionalityTest.service", out var stdout, out var stderr),
+                $"stdout: \n{string.Join("\n", stdout)}\nstderr: \n{string.Join("\n", stderr)}"
+                );
             var ret = false;
             foreach (var line in stdout)
             {
@@ -78,7 +81,10 @@ namespace SvcGuestTest
         [TestMethod]
         public void LaunchSequenceTest()
         {
-            Assert.AreEqual(0, RunAndWaitForOutput(@"-D --config TestConfigs\LaunchSequenceTest.service", out var stdout, out var stderr));
+            Assert.AreEqual(0, 
+                RunAndWaitForOutput(@"-D --config TestConfigs\LaunchSequenceTest.service", out var stdout, out var stderr),
+                $"stdout: \n{string.Join("\n", stdout)}\nstderr: \n{string.Join("\n", stderr)}"
+                );
             AssertStringSequence(stdout, new List<string>()
             {
                 "ExecStartPre1",
@@ -96,7 +102,10 @@ namespace SvcGuestTest
         [TestMethod]
         public void LaunchSequenceTestWithError()
         {
-            Assert.AreEqual(0, RunAndWaitForOutput(@"-D --config TestConfigs\LaunchSequenceTestWithError.service", out var stdout, out var stderr));
+            Assert.AreEqual(0, 
+                RunAndWaitForOutput(@"-D --config TestConfigs\LaunchSequenceTestWithError.service", out var stdout, out var stderr),
+                $"stdout: \n{string.Join("\n", stdout)}\nstderr: \n{string.Join("\n", stderr)}"
+                );
             AssertStringSequence(stdout, new List<string>()
             {
                 "ExecStartPre1",
