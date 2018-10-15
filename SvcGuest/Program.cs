@@ -42,7 +42,7 @@ namespace SvcGuest
         [Option("--LaunchIndex", CommandOptionType.SingleValue, ShowInHelpText = false)]
         public int ExecConfigIndex { get; }
 
-        [Option("-D", CommandOptionType.NoValue, ShowInHelpText = false, Description = "Run the service content in the foreground without actually installing it.")]
+        [Option("-D", CommandOptionType.NoValue, ShowInHelpText = true, Description = "Run the service content in the foreground without actually installing it.")]
         public bool RunOnly { get; }
         // ReSharper restore UnassignedGetOnlyAutoProperty
 
