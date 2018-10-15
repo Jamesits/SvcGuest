@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Timers;
+using SvcGuest.Logging;
 using SvcGuest.Win32;
 
 namespace SvcGuest.ProgramWrappers
@@ -63,7 +64,7 @@ namespace SvcGuest.ProgramWrappers
                 out _pi
                 ))
                 throw new Win32Exception();
-            Debug.WriteLine($"Helper process at {ChildProcessId}");
+            LogMuxer.Instance.Debug($"Helper process at {ChildProcessId}");
             _p = Process.GetProcessById(ChildProcessId);
             _checkChildProcessTimer.Elapsed += OnCheckChildProcessTimer;
         }

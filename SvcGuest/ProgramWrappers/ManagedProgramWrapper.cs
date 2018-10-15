@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using SvcGuest.Logging;
 
 namespace SvcGuest.ProgramWrappers
 {
@@ -24,11 +25,12 @@ namespace SvcGuest.ProgramWrappers
             _p.StartInfo.Arguments = arguments;
             _p.StartInfo.UseShellExecute = false;
             _p.StartInfo.RedirectStandardOutput = true;
+            _p.StartInfo.RedirectStandardError = true;
             _p.StartInfo.WorkingDirectory = Globals.Config.WorkingDirectory;
             _p.StartInfo.LoadUserProfile = true;
 
-            _p.OutputDataReceived += (sender, args) => OnMessage(args.Data, false);
-            _p.ErrorDataReceived += (sender, args) => OnMessage(args.Data, true);
+            _p.OutputDataReceived += (sender, args) => LogMuxer.Instance.SubprocessStdout(args.Data);
+            _p.ErrorDataReceived += (sender, args) => LogMuxer.Instance.SubprocessStderr(args.Data);
             _p.EnableRaisingEvents = true;
             _p.Exited += OnExit;
         }
@@ -40,11 +42,19 @@ namespace SvcGuest.ProgramWrappers
             try
             {
                 _p.BeginOutputReadLine();
+            }
+            catch (InvalidOperationException)
+            {
+                LogMuxer.Instance.Warning("Unable to read stdout");
+            }
+
+            try
+            {
                 _p.BeginErrorReadLine();
             }
             catch (InvalidOperationException)
             {
-                EventLog.WriteEntry(EventSourceName, "Unable to read stdout/stderr", EventLogEntryType.FailureAudit);
+                LogMuxer.Instance.Warning("Unable to read stderr");
             }
         }
 

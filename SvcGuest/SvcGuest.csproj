@@ -84,6 +84,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="Logging\ConsoleLogger.cs" />
+    <Compile Include="Logging\DebugLogger.cs" />
+    <Compile Include="Logging\LegacyEventLogger.cs" />
+    <Compile Include="Logging\Logger.cs" />
+    <Compile Include="Logging\LogMuxer.cs" />
+    <Compile Include="ServiceInterface\Supervisor.cs" />
     <Compile Include="Win32\DeepDarkWin32Fantasy.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="ProgramWrappers\NativeProgramWrapper.cs" />
@@ -95,14 +101,16 @@
     <Compile Include="ServiceInterface\ServiceInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ServiceInterface\SupervisorService.cs">
+    <Compile Include="ServiceInterface\Service.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Win32\UACHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="app.manifest" />
+    <None Include="app.manifest">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -7,6 +7,7 @@ using System.Security.Permissions;
 using System.ServiceProcess;
 using System.Threading;
 using McMaster.Extensions.CommandLineUtils;
+using SvcGuest.Logging;
 using SvcGuest.ProgramWrappers;
 using SvcGuest.ServiceInterface;
 using SvcGuest.Win32;
@@ -40,6 +41,9 @@ namespace SvcGuest
 
         [Option("--LaunchIndex", CommandOptionType.SingleValue, ShowInHelpText = false)]
         public int ExecConfigIndex { get; }
+
+        [Option("-D", CommandOptionType.NoValue, ShowInHelpText = false, Description = "Run the service content in the foreground without actually installing it.")]
+        public bool RunOnly { get; }
         // ReSharper restore UnassignedGetOnlyAutoProperty
 
         /// <summary>
@@ -62,7 +66,7 @@ namespace SvcGuest
             // If this is a helper process 
             if (IsImpersonatedProcess)
             {
-                Debug.WriteLine("Executing impersonation helper routine");
+                LogMuxer.Instance.Debug("Executing impersonation helper routine");
                 LoadConfig();
                 ExecConfig execConfig;
                 switch (ExecConfigLaunchType)
@@ -87,12 +91,12 @@ namespace SvcGuest
 
             if (Environment.UserInteractive)
             {
-                Debug.WriteLine($"IsElevated: {UACHelper.IsRunAsAdmin()}");
-                Debug.WriteLine($"Cmdline: {Environment.CommandLine}");
+                LogMuxer.Instance.Debug($"IsElevated: {UACHelper.IsRunAsAdmin()}");
+                LogMuxer.Instance.Debug($"Cmdline: {Environment.CommandLine}");
 
                 if (!UACHelper.IsRunAsAdmin())
                 {
-                    Console.Error.WriteLine("Warning: you may not have sufficient privilege to install services.");
+                    LogMuxer.Instance.Warning("Warning: you may not have sufficient privilege to install services.");
                 }
                 //if (!DoNotElevate && !UACHelper.IsRunAsAdmin())
                 //{
@@ -101,7 +105,7 @@ namespace SvcGuest
 
                 if (Install && Uninstall)
                 {
-                    Console.WriteLine("Self-contradictory arguments?");
+                    LogMuxer.Instance.Fatal("Self-contradictory arguments?");
                     Environment.Exit(1);
                 } else if (Install) {
                     LoadConfig();
@@ -110,9 +114,18 @@ namespace SvcGuest
                     LoadConfig();
                     UninstallService();
                 }
+                else if (RunOnly)
+                {
+                    LoadConfig();
+                    // TODO: run the commands without a service
+                    var s = new Supervisor();
+                    s.Start();
+                    s.WaitForExit();
+                    s.Stop();
+                }
                 else
                 {
-                    Console.WriteLine("Searching for unit files in program directory...");
+                    LogMuxer.Instance.Info("Searching for unit files in program directory...");
                     // Let's install every service in this folder
                     try
                     {
@@ -126,14 +139,14 @@ namespace SvcGuest
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.Message);
+                        LogMuxer.Instance.Error(e.Message);
                     }
                 }
             }
             else
             {
                 LoadConfig();
-                ServiceBase.Run(new SupervisorService());
+                ServiceBase.Run(new Service());
             }
         }
 
@@ -169,7 +182,7 @@ namespace SvcGuest
             }
             catch
             {
-                Console.Error.WriteLine("Register failed: unable to execute self.");
+                LogMuxer.Instance.Error("Register failed: unable to execute self.");
                 Environment.Exit(1);
             }
         }
@@ -198,7 +211,7 @@ namespace SvcGuest
             }
             catch
             {
-                Console.Error.WriteLine("Elevation failed.");
+                LogMuxer.Instance.Error("Elevation failed.");
                 Environment.Exit(1);
             }
         }
@@ -229,7 +242,7 @@ namespace SvcGuest
         /// <param name="e"></param>
         private static void OnProcessExit(object sender, EventArgs e)
         {
-            Debug.WriteLine("Being killed, cleaning up...");
+            LogMuxer.Instance.Info("Being killed, cleaning up...");
             Wrapper?.Stop();
 
             // shut down all child processes
@@ -249,10 +262,10 @@ namespace SvcGuest
             var e = eventArgs.ExceptionObject as Exception;
             if (e?.InnerException is System.Security.SecurityException)
             {
-                Console.Error.WriteLine("You have insufficient permission for this action. Consider run this program as Administrator.");
+                LogMuxer.Instance.Fatal("You have insufficient permission for this action. Consider run this program as Administrator.");
                 return;
             }
-            else Console.WriteLine(e?.InnerException);
+            else LogMuxer.Instance.Fatal(e?.InnerException?.ToString());
         }
     }
 }
