@@ -38,22 +38,25 @@ namespace SvcGuest.ServiceInterface
             base.OnStart(args);
 
             // ExecStartPre
+            Debug.WriteLine("Executing ExecStartPre");
             for (var i = 0; i < Globals.Config.ExecStartPre.Count; ++i)
             {
-                Run(Globals.Config.ExecStartPre[i], "ExecStartPre", i);
+                Run(Globals.Config.ExecStartPre[i], "ExecStartPre", i, isAsync:false);
             }
 
 
             // ExecStart
+            Debug.WriteLine("Executing ExecStart");
             for (var i = 0; i < Globals.Config.ExecStart.Count; ++i)
             {
                 Run(Globals.Config.ExecStart[i], "ExecStart", i);
             }
 
             // ExecStartPost
+            Debug.WriteLine("Executing ExecStartPost");
             for (var i = 0; i < Globals.Config.ExecStartPost.Count; ++i)
             {
-                Run(Globals.Config.ExecStartPost[i], "ExecStartPost", i);
+                Run(Globals.Config.ExecStartPost[i], "ExecStartPost", i, isAsync:false);
             }
 
             // Update the service state to Running.  
@@ -128,19 +131,7 @@ namespace SvcGuest.ServiceInterface
             _serviceStatus.dwWaitHint = ProgramWrapper.KillWaitMs;
             Advapi32.SetServiceStatus(ServiceHandle, ref _serviceStatus);
 
-            // ExecStop
-            if (_isErrorQuitting)
-                for (var i = 0; i < Globals.Config.ExecStop.Count; ++i)
-                {
-                    Run(Globals.Config.ExecStop[i], "ExecStop", i, isAsync: false);
-                }
-
-            // ExecStopPost
-            for (var i = 0; i < Globals.Config.ExecStopPost.Count; ++i)
-            {
-                Run(Globals.Config.ExecStopPost[i], "ExecStopPost", i);
-            }
-
+            Debug.WriteLine("Killing child processes");
             foreach (var wrapper in _programPool)
             {
                 wrapper.Stop();
@@ -149,6 +140,22 @@ namespace SvcGuest.ServiceInterface
             foreach (var pid in ProgramWrapper.GetChildProcessIds(ProgramWrapper.SelfProcessId))
             {
                 ProgramWrapper.QuitProcess(Process.GetProcessById(pid));
+            }
+
+            // ExecStop
+            // only if the service started successfully
+            if (_isErrorQuitting == false)
+                Debug.WriteLine("Executing ExecStop");
+                for (var i = 0; i < Globals.Config.ExecStop.Count; ++i)
+                {
+                    Run(Globals.Config.ExecStop[i], "ExecStop", i, isAsync: false);
+                }
+
+            // ExecStopPost
+            Debug.WriteLine("Executing ExecStopPost");
+            for (var i = 0; i < Globals.Config.ExecStopPost.Count; ++i)
+            {
+                Run(Globals.Config.ExecStopPost[i], "ExecStopPost", i, isAsync:false);
             }
 
             base.OnStop();
