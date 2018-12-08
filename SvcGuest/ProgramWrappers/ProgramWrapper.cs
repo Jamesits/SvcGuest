@@ -109,10 +109,17 @@ namespace SvcGuest.ProgramWrappers
             ManagementObjectSearcher mos = new ManagementObjectSearcher(
                 $"Select * From Win32_Process Where ParentProcessID={processId}");
 
-            foreach (var o in mos.Get())
+            try
             {
-                var mo = (ManagementObject)o;
-                children.Add(Convert.ToInt32(mo["ProcessID"]));
+                foreach (var o in mos.Get())
+                {
+                    var mo = (ManagementObject) o;
+                    children.Add(Convert.ToInt32(mo["ProcessID"]));
+                }
+            }
+            catch (ManagementException ex) // System.Management.ManagementException: Shutting down 
+            {
+                LogMuxer.Instance.Error(ex.ToString());
             }
 
             children = children.OrderByDescending(i => i).ToList();
