@@ -247,6 +247,12 @@ namespace SvcGuest.Win32
         public const Int32 SECURITY_MANDATORY_MEDIUM_RID = 0x00002000;
         public const Int32 SECURITY_MANDATORY_HIGH_RID = 0x00003000;
         public const Int32 SECURITY_MANDATORY_SYSTEM_RID = 0x00004000;
+
+        // WaitForSingleObject
+        public const UInt32 INFINITE = 0xFFFFFFFF;
+        public const UInt32 WAIT_ABANDONED = 0x00000080;
+        public const UInt32 WAIT_OBJECT_0 = 0x00000000;
+        public const UInt32 WAIT_TIMEOUT = 0x00000102;
         #endregion
 
         internal class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid

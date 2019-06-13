@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using SvcGuest.Logging;
 using SvcGuest.Win32;
@@ -26,16 +28,20 @@ namespace SvcGuest.ProgramWrappers
         private readonly int _launchIndex;
         private readonly IntPtr _identityToken;
 
+        private bool isChildProcessAlive;
+        private Task childProcessWaitTask;
         public int ChildProcessId => _pi.dwProcessId;
         private Process _p;
         public Process P => IfChildProcessAlive() ? _p : null;
 
-        private readonly Timer _checkChildProcessTimer = new Timer()
-        {
-            AutoReset = true,
-            Enabled = true,
-            Interval = 1000,
-        };
+        private const int checkInterval = 1000;
+
+        //private readonly System.Timers.Timer _checkChildProcessTimer = new System.Timers.Timer()
+        //{
+        //    AutoReset = true,
+        //    Enabled = true,
+        //    Interval = checkInterval,
+        //};
 
         public NativeProgramWrapper(string launchType, int launchIndex, IntPtr identityToken)
         {
@@ -64,9 +70,11 @@ namespace SvcGuest.ProgramWrappers
                 out _pi
                 ))
                 throw new Win32Exception();
+            isChildProcessAlive = true;
             LogMuxer.Instance.Debug($"Helper process at {ChildProcessId}");
             _p = Process.GetProcessById(ChildProcessId);
-            _checkChildProcessTimer.Elapsed += OnCheckChildProcessTimer;
+            // _checkChildProcessTimer.Elapsed += OnCheckChildProcessTimer;
+            childProcessWaitTask = Task.Run(() => WaitForExitInternal());
         }
 
         public override void Stop()
@@ -76,23 +84,57 @@ namespace SvcGuest.ProgramWrappers
             QuitProcess(_p);
         }
 
+        private void WaitForExitInternal()
+        {
+            while (isChildProcessAlive)
+            {
+                try
+                {
+                    if (Kernel32.WaitForSingleObject((IntPtr)ChildProcessId, DeepDarkWin32Fantasy.INFINITE) == DeepDarkWin32Fantasy.WAIT_OBJECT_0)
+                    {
+                        // Signaled            
+                        isChildProcessAlive = false;
+
+                    }
+                    else
+                    {
+                        Thread.Sleep(checkInterval);
+                    }
+                }
+
+                catch (Exception Ex)
+                {
+                    // An exception occurred
+                    LogMuxer.Instance.Error(Ex.ToString());
+                }
+            }
+        }
+
         public override void WaitForExit()
         {
-            if (IfChildProcessAlive()) _p.WaitForExit();
+            // old impl: use WMI
+            // if (IfChildProcessAlive()) _p.WaitForExit();
+
+            // new impl: use WaitForSingleObject
+            childProcessWaitTask.Wait();
         }
 
         private bool IfChildProcessAlive()
         {
-            return GetChildProcessIds(SelfProcessId).Contains(ChildProcessId);
+            // old impl
+            // return GetChildProcessIds(SelfProcessId).Contains(ChildProcessId);
+
+            // new impl
+            return isChildProcessAlive;
         }
 
-        private void OnCheckChildProcessTimer(object sender, EventArgs e)
-        {
-            if (!IfChildProcessAlive())
-            {
-                OnProgramExited(this, null);
-                _checkChildProcessTimer.Enabled = false;
-            }
-        }
+        //private void OnCheckChildProcessTimer(object sender, EventArgs e)
+        //{
+        //    if (!IfChildProcessAlive())
+        //    {
+        //        OnProgramExited(this, null);
+        //        _checkChildProcessTimer.Enabled = false;
+        //    }
+        //}
     }
 }
