@@ -52,6 +52,12 @@ namespace FakeTarget
             return 0;
         }
 
+        internal static int GetAccessToken(string[] args)
+        {
+            Program.WriteLine(System.Security.Principal.WindowsIdentity.GetCurrent().Token.ToString());
+            return 0;
+        }
+
         internal static int GetEnvironmentVariables(string[] args)
         {
             foreach (DictionaryEntry env in System.Environment.GetEnvironmentVariables())

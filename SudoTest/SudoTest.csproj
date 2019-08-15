@@ -5,11 +5,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0C61F2CD-132D-4B37-97C4-93E3ED992BC9}</ProjectGuid>
+    <ProjectGuid>{4EC17BC2-C82A-4667-9A82-F491FCBA5E9A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SvcGuestTest</RootNamespace>
-    <AssemblyName>SvcGuestTest</AssemblyName>
+    <RootNamespace>SudoTest</RootNamespace>
+    <AssemblyName>SudoTest</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -20,7 +20,6 @@
     <TestProjectType>UnitTest</TestProjectType>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -50,36 +49,23 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExecConfigTest.cs" />
+    <Compile Include="SudoTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="OverallTest.cs" />
+    <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="TestConfigs\BasicFunctionalityTest.service">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="TestConfigs\LaunchSequenceTestWithUser.service">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="TestConfigs\LaunchSequenceTest.service">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="TestConfigs\LaunchSequenceTestWithError.service">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FakeTarget\FakeTarget.csproj">
       <Project>{87c70783-0936-42c8-8aec-fa1faa879153}</Project>
       <Name>FakeTarget</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SvcGuest\SvcGuest.csproj">
-      <Project>{2b8ec1b0-3fcc-48a3-98aa-a31a2d44eff0}</Project>
-      <Name>SvcGuest</Name>
+    <ProjectReference Include="..\Sudo\SudoLib.csproj">
+      <Project>{b69c328b-3515-46c7-aad7-7ca0af9f0454}</Project>
+      <Name>SudoLib</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -1,0 +1,17 @@
+[Unit]
+Name=Demo Service
+Description=This is a demo config file for SvcGuest.
+Documentation=https://github.com/Jamesits/SvcGuest
+
+[Service]
+Type=simple
+User=Administrator
+ExecStartPre=FakeTarget.exe -delay 1000 -echo ExecStartPre1
+ExecStartPre=FakeTarget.exe -delay 500 -echo ExecStartPre2
+ExecStartPre=FakeTarget.exe -echo ExecStartPre3
+ExecStart=FakeTarget.exe -delay 2000 -echo ExecStart1
+ExecStartPost=FakeTarget.exe -delay 1000 -echo ExecStartPost1
+ExecStop=FakeTarget.exe -delay 1000 -echo ExecStop1
+ExecStop=FakeTarget.exe -echo ExecStop2
+ExecStopPost=FakeTarget.exe -delay 1000 -echo ExecStopPost1
+ExecStopPost=FakeTarget.exe -echo ExecStopPost2

@@ -94,7 +94,7 @@ namespace SvcGuest.ProgramWrappers
                     {
                         // Signaled            
                         isChildProcessAlive = false;
-
+                        LogMuxer.Instance.Info("Subprocess quit from WaitForSingleObject");
                     }
                     else
                     {

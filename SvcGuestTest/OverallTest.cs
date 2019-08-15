@@ -80,6 +80,7 @@ namespace SvcGuestTest
                 $"stdout: \n{string.Join("\n", stdout)}\nstderr: \n{string.Join("\n", stderr)}"
                 );
             var ret = false;
+            Console.WriteLine(stdout);
             foreach (var line in stdout)
             {
                 if (string.Equals("ExecStart", line)) ret = true;
@@ -94,6 +95,7 @@ namespace SvcGuestTest
                 RunAndWaitForOutput(@"-D --config TestConfigs\LaunchSequenceTest.service", out var stdout, out var stderr),
                 $"stdout: \n{string.Join("\n", stdout)}\nstderr: \n{string.Join("\n", stderr)}"
                 );
+            Console.WriteLine(stdout);
             Assert.IsTrue(AssertStringSequence(stdout, new List<string>()
             {
                 "ExecStartPre1",
@@ -115,6 +117,7 @@ namespace SvcGuestTest
                 RunAndWaitForOutput(@"-D --config TestConfigs\LaunchSequenceTestWithError.service", out var stdout, out var stderr),
                 $"stdout: \n{string.Join("\n", stdout)}\nstderr: \n{string.Join("\n", stderr)}"
                 );
+            Console.WriteLine(stdout);
             Assert.IsTrue(AssertStringSequence(stdout, new List<string>()
             {
                 "ExecStartPre1",
@@ -131,5 +134,26 @@ namespace SvcGuestTest
                 "ExecStop2",
             }));
         }
+
+        //[TestMethod]
+        //public void LaunchSequenceWithUserTest()
+        //{
+        //    Assert.AreEqual(0,
+        //        RunAndWaitForOutput(@"-D --config TestConfigs\LaunchSequenceTestWithUser.service", out var stdout, out var stderr),
+        //        $"stdout: \n{string.Join("\n", stdout)}\nstderr: \n{string.Join("\n", stderr)}"
+        //        );
+        //    Assert.IsTrue(AssertStringSequence(stdout, new List<string>()
+        //    {
+        //        "ExecStartPre1",
+        //        "ExecStartPre2",
+        //        "ExecStartPre3",
+        //        "ExecStartPost1",
+        //        "ExecStart1",
+        //        "ExecStop1",
+        //        "ExecStop2",
+        //        "ExecStopPost1",
+        //        "ExecStopPost2",
+        //    }));
+        //}
     }
 }

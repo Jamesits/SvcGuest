@@ -22,7 +22,8 @@ namespace SvcGuest.Logging
             catch
             {
                 // I'm fine
-                Instance.Warning("Unable to attach a LegacyEventLogger, maybe because lack of privilege?");
+                // but we cannot use ourselves now
+                // Instance.Warning("Unable to attach a LegacyEventLogger, maybe because lack of privilege?");
             }
         }
 

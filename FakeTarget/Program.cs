@@ -36,6 +36,7 @@ namespace FakeTarget
             new FuncDef("getUser", BasicFunctionDef.GetCurrentUsername, "Echo the username of current security context"), 
             new FuncDef("setOutput", SetOutput, "Set the output mode to stdout|stderr|filename"), 
             new FuncDef("getEnv", BasicFunctionDef.GetEnvironmentVariables, "Echo a list of system environment variables in key=value format"), 
+            new FuncDef("getAccessToken", BasicFunctionDef.GetAccessToken, "Get an integer representation of the primary access token of current user"), 
         };
 
         internal static int Help(string[] args)
