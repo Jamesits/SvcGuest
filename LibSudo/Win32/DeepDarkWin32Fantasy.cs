@@ -225,7 +225,7 @@ namespace LibSudo.Win32
         #region constants
 
         // Token Specific Access Rights
-
+        // Use System.Security.Principal.TokenAccessLevels instead
         public const UInt32 STANDARD_RIGHTS_REQUIRED = 0x000F0000;
         public const UInt32 STANDARD_RIGHTS_READ = 0x00020000;
         public const UInt32 TOKEN_ASSIGN_PRIMARY = 0x0001;

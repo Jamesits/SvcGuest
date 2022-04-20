@@ -31,6 +31,7 @@ namespace LibSudo
         public uint CreationFlags { get; private set; } = 0;
         public string WorkingDirectory { get; set; } = Directory.GetCurrentDirectory();
         public StringDictionary Environment { get; set; } = Process.GetCurrentProcess().StartInfo.EnvironmentVariables;
+        public bool UnicodeEnvironment { get; set; } = true;
         
         // executable
         public string ExecutablePath { get; set; } // optional
@@ -39,8 +40,6 @@ namespace LibSudo
         // runtime information
         private Advapi32.SECURITY_ATTRIBUTES _saProcessAttributes;
         private Advapi32.SECURITY_ATTRIBUTES _saThreadAttributes;
-        private IntPtr _lpEnvironmentBlock = IntPtr.Zero;
-        private GCHandle? _environmentBlockGcHandle = null;
         private DeepDarkWin32Fantasy.STARTUPINFO _startupInfo;
         private DeepDarkWin32Fantasy.PROCESS_INFORMATION _processInfo;
         public uint ExitCode => _exitCode;
@@ -57,6 +56,11 @@ namespace LibSudo
             {
                 throw new InvalidOperationException("Required privilege SeDelegateSessionUserImpersonatePrivilege failed");
             }
+
+            // Windows 2000 compat
+            // See:
+            // http://lumineerlabs.com/user-impersonation-in-c
+            // https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/adjust-memory-quotas-for-a-process
             //if (!currentProcess.SetPrivilege("SeIncreaseQuotaPrivilege", true))
             //{
             //    throw new InvalidOperationException("Required privilege SeIncreaseQuotaPrivilege failed");
@@ -96,8 +100,12 @@ namespace LibSudo
             // https://docs.microsoft.com/en-us/windows/win32/procthread/process-creation-flags
             if (CreationFlags == 0)
             {
-                CreationFlags = DeepDarkWin32Fantasy.CREATE_UNICODE_ENVIRONMENT |
-                                DeepDarkWin32Fantasy.CREATE_DEFAULT_ERROR_MODE;
+                CreationFlags = DeepDarkWin32Fantasy.CREATE_DEFAULT_ERROR_MODE;
+
+                if (UnicodeEnvironment)
+                {
+                    CreationFlags |= DeepDarkWin32Fantasy.CREATE_UNICODE_ENVIRONMENT;
+                }
 
                 if (NewConsole)
                 {
@@ -128,7 +136,10 @@ namespace LibSudo
             {
                 SessionId = 0;
             }
-            
+
+            // environment
+            var environmentBlock = EnvironmentBlock.NewFromEmpty(UnicodeEnvironment);
+
             // create the process
             try
             {
@@ -140,7 +151,7 @@ namespace LibSudo
                     ref _saThreadAttributes,
                     false,
                     CreationFlags,
-                    IntPtr.Zero,
+                    environmentBlock,
                     WorkingDirectory,
                     ref _startupInfo,
                     out _processInfo
@@ -149,7 +160,7 @@ namespace LibSudo
             finally
             {
                 DestroyToken(token);
-                FreeLpEnvironment();
+                EnvironmentBlock.Free(environmentBlock);
                 //Kernel32.FreeConsole();
             }
         }
@@ -201,43 +212,6 @@ namespace LibSudo
         private void DestroyToken(DeepDarkWin32Fantasy.SafeTokenHandle token)
         {
 
-        }
-
-        private IntPtr CreateLpEnvironment()
-        {
-            if (_environmentBlockGcHandle != null)
-            {
-                FreeLpEnvironment();
-            }
-
-            // concat string
-            // https://stackoverflow.com/a/25400104
-            var sb = new StringBuilder();
-            foreach (var key in Environment.Keys)
-            {
-                if (!(key is string keyString)) continue;
-                sb.Append(keyString);
-                sb.Append("=");
-                sb.Append(Environment[keyString]);
-                sb.Append(0);
-            }
-            sb.Append(0);
-
-            // https://stackoverflow.com/a/8855252
-            _lpEnvironmentBlock = Marshal.StringToCoTaskMemUni(sb.ToString());
-            _environmentBlockGcHandle = GCHandle.Alloc(_lpEnvironmentBlock, GCHandleType.Pinned);
-            return _lpEnvironmentBlock;
-        }
-
-        private void FreeLpEnvironment()
-        {
-            _environmentBlockGcHandle?.Free();
-            _environmentBlockGcHandle = null;
-
-            if (_lpEnvironmentBlock != IntPtr.Zero)
-            {
-                Marshal.FreeCoTaskMem(_lpEnvironmentBlock);
-            }
         }
     }
 }
