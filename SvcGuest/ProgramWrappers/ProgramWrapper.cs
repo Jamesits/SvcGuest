@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using SvcGuest.Logging;
-using SvcGuest.Win32;
+using LibSudo.Win32;
 using Timer = System.Timers.Timer;
 
 namespace SvcGuest.ProgramWrappers

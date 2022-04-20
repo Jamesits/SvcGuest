@@ -5,7 +5,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
 using SvcGuest.ProgramWrappers;
-using SvcGuest.Win32;
+using LibSudo.Win32;
 
 namespace SvcGuest.ServiceInterface
 {
