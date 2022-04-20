@@ -48,7 +48,7 @@ namespace LibSudo
         // Creates an empty environment block
         public static IntPtr NewFromEmpty(bool unicode)
         {
-            return New(unicode, "");
+            return New(unicode, "\0");
         }
 
         public static void Free(IntPtr environmentBlock)

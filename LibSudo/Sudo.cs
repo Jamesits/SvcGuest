@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Diagnostics;
 using System.IO;
-using System.Collections;
-using System.ComponentModel;
-using System.Runtime;
 using System.Runtime.InteropServices;
 using LibSudo.Win32;
 using System.Collections.Specialized;
 using System.Security.Permissions;
 using System.Security.Principal;
-using System.Threading;
 
 namespace LibSudo
 {
@@ -45,6 +39,11 @@ namespace LibSudo
         public uint ExitCode => _exitCode;
         private uint _exitCode;
 
+        // thread-safe once only entry flag
+        // https://stackoverflow.com/a/9514536
+        private readonly object _startedLockObj = new object();
+        public bool Started { get; private set; } = false;
+
         public static void ElevateSelf()
         {
             var currentProcess = new CProcess();
@@ -69,6 +68,16 @@ namespace LibSudo
 
         public void Start()
         {
+            lock (_startedLockObj)
+            {
+                if (Started)
+                {
+                    throw new InvalidOperationException("Trying to re-use a used Sudo object");
+                }
+
+                Started = true;
+            }
+
             // create StartupInfo
             _startupInfo = new DeepDarkWin32Fantasy.STARTUPINFO
             {
@@ -107,18 +116,15 @@ namespace LibSudo
                     CreationFlags |= DeepDarkWin32Fantasy.CREATE_UNICODE_ENVIRONMENT;
                 }
 
+                // https://www.sysadmins.lv/retired-msft-blogs/alejacma/process-created-with-createprocessasuser-wont-initialize-properly.aspx
                 if (NewConsole)
                 {
                     CreationFlags |= DeepDarkWin32Fantasy.CREATE_NEW_CONSOLE;
                 }
-                else
-                {
-                    CreationFlags |= DeepDarkWin32Fantasy.CREATE_NO_WINDOW;
-                }
             }
 
             // token
-            var token = CreateToken();
+            var token = Token.Create();
 
             // mandatory policy
 
@@ -159,7 +165,7 @@ namespace LibSudo
             }
             finally
             {
-                DestroyToken(token);
+                Token.Destroy(token);
                 EnvironmentBlock.Free(environmentBlock);
                 //Kernel32.FreeConsole();
             }
@@ -167,49 +173,20 @@ namespace LibSudo
 
         public uint Wait()
         {
+            lock (_startedLockObj)
+            {
+                if (!Started)
+                {
+                    throw new InvalidOperationException("Trying to wait for an process that has not started");
+                }
+            }
+
             Kernel32.WaitForSingleObjectEx(_processInfo.hProcess, DeepDarkWin32Fantasy.INFINITE, false);
             Kernel32.GetExitCodeProcess(_processInfo.hProcess, out _exitCode);
             return _exitCode;
         }
 
         public void Dispose()
-        {
-
-        }
-
-        private DeepDarkWin32Fantasy.SafeTokenHandle GetProcessToken(IntPtr processHandle)
-        {
-            // http://lumineerlabs.com/user-impersonation-in-c
-            ExceptionHelper.Check(Advapi32.OpenProcessToken(
-                processHandle,
-                (uint)(TokenAccessLevels.AllAccess),
-                out var ret
-                ));
-            return ret;
-        }
-
-        private DeepDarkWin32Fantasy.SafeTokenHandle CreateToken()
-        {
-            var baseToken = GetProcessToken(Process.GetCurrentProcess().Handle);
-            var securityAttributes = new Advapi32.SECURITY_ATTRIBUTES()
-            {
-                bInheritHandle = 1,
-                nLength = Marshal.SizeOf(typeof(Advapi32.SECURITY_ATTRIBUTES)),
-                lpSecurityDescriptor = 0,
-            };
-            // https://stackoverflow.com/a/33765296
-            ExceptionHelper.Check(Advapi32.DuplicateTokenEx(
-                baseToken,
-                (uint)(TokenAccessLevels.AllAccess), 
-                ref securityAttributes,
-                Advapi32.SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
-                Advapi32.TOKEN_TYPE.TokenPrimary,
-                out var token
-                ));
-            return token;
-        }
-
-        private void DestroyToken(DeepDarkWin32Fantasy.SafeTokenHandle token)
         {
 
         }

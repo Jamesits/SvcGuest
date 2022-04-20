@@ -4,7 +4,7 @@ Register any executable as a Windows service with a (partially) systemd-compatib
 
 [![Build status](https://dev.azure.com/nekomimiswitch/General/_apis/build/status/SvcGuest)](https://dev.azure.com/nekomimiswitch/General/_build/latest?definitionId=2)
 
-Binaries are available for download in the [releases](https://github.com/Jamesits/SvcGuest/releases) page for your convenience. 
+Binaries are available for download in the [releases](https://github.com/Jamesits/SvcGuest/releases) page for your convenience.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ Binaries are available for download in the [releases](https://github.com/Jamesit
 
 If you wrote a piece of software and doesn't want to adapt to the Windows Service interfaces yourself, you can distribute a binary release of `SvcGuest.exe` and your `program.service` config file ([example](examples/)) with your software, and run `svcguest.exe --install --config program.service` (remember to elevate!) during your software installation.
 
-[MPL 2.0 License](LICENSE) allows distributing `SvcGuest.exe` with your software for free with some limitations. Ask your lawyer for advice if in doubt. 
+[MPL 2.0 License](LICENSE) allows distributing `SvcGuest.exe` with your software for free with some limitations. Ask your lawyer for advice if in doubt.
 
 ### End User
 
@@ -59,11 +59,19 @@ Features supported on the master branch (for the releases, see the `.service` fi
 
 ## Notes
 
-### Versioning 
+### Versioning
 
-Master branch is unstable; please use a specific release for production use. 
+Master branch is unstable; please use a specific release for production use.
 
 It is recommended to upgrade to the latest revision (i.e. if you are at 1.0.2.4, then you should upgrade to 1.0.2.5 or later version of 1.0.2.x); but if you have no issue running one of the releases and don't need any new function, then you don't need to upgrade to a later minor version (e.g. 1.0.2.x to 1.0.3.x).
+
+### Thanks
+
+The following articles and projects helped me to write this project:
+- [Impersonating the Desktop User From an Elevated Application in .NET - LUMINEER LABS](http://lumineerlabs.com/user-impersonation-in-c)
+- [llccd/WinSU](https://github.com/llccd/WinSU)
+- [bb107/WinSudo](https://github.dev/bb107/WinSudo)
+- [gerardog/gsudo](https://github.com/gerardog/gsudo)
 
 ### Donation
 

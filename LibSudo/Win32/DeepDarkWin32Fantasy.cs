@@ -14,7 +14,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace LibSudo.Win32
 {
-    internal class DeepDarkWin32Fantasy
+    public class DeepDarkWin32Fantasy
     {
         #region Structs
 
@@ -298,7 +298,7 @@ namespace LibSudo.Win32
 
         #endregion
 
-        internal class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
+        public class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
         {
             private SafeTokenHandle() : base(true)
             {
