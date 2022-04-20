@@ -5,9 +5,9 @@ using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using LibSudo.Win32;
 using SvcGuest.Logging;
 using SvcGuest.ProgramWrappers;
-using SvcGuest.Win32;
 
 namespace SvcGuest.ServiceInterface
 {
@@ -138,7 +138,7 @@ namespace SvcGuest.ServiceInterface
                 {
                     LogMuxer.Instance.Debug($"After impersonation, User={WindowsIdentity.GetCurrent().Name}, ImpersonationLevel={identity.ImpersonationLevel}");;
 
-                    wrapper = new NativeProgramWrapper(section, seq, identity.Token);
+                    wrapper = new NativeProgramWrapper(section, seq, new DeepDarkWin32Fantasy.SafeTokenHandle(identity.Token));
                     wrapper.Start();
                 }
             }

@@ -293,6 +293,9 @@ namespace LibSudo.Win32
         public const UInt32 PROFILE_SERVER = 0x40000000;
         public const UInt32 CREATE_IGNORE_SYSTEM_DEFAULT = 0x80000000;
 
+        // DuplicateTokenEx
+        public const UInt32 GRANTED_ALL = 0x10000000;
+
         #endregion
 
         internal class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
@@ -511,13 +514,13 @@ namespace LibSudo.Win32
             ref DeepDarkWin32Fantasy.LUID lpLuid);
 
         [DllImport("advapi32.dll")]
-        public static extern bool DuplicateTokenEx(IntPtr hExistingToken, uint dwDesiredAccess,
-            out SECURITY_ATTRIBUTES lpTokenAttributes, SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
-            TOKEN_TYPE TokenType, out IntPtr phNewToken);
+        public static extern bool DuplicateTokenEx(DeepDarkWin32Fantasy.SafeTokenHandle hExistingToken, uint dwDesiredAccess,
+            ref SECURITY_ATTRIBUTES lpTokenAttributes, SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
+            TOKEN_TYPE TokenType, out DeepDarkWin32Fantasy.SafeTokenHandle phNewToken);
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern bool CreateProcessAsUser(
-            IntPtr hToken,
+            DeepDarkWin32Fantasy.SafeTokenHandle hToken,
             string lpApplicationName,
             string lpCommandLine,
             ref SECURITY_ATTRIBUTES lpProcessAttributes,

@@ -10,6 +10,8 @@ using System.Runtime.InteropServices;
 using LibSudo.Win32;
 using System.Collections.Specialized;
 using System.Security.Permissions;
+using System.Security.Principal;
+using System.Threading;
 
 namespace LibSudo
 {
@@ -44,6 +46,23 @@ namespace LibSudo
         public uint ExitCode => _exitCode;
         private uint _exitCode;
 
+        public static void ElevateSelf()
+        {
+            var currentProcess = new CProcess();
+            if (!currentProcess.SetPrivilege("SeTcbPrivilege", true))
+            {
+                throw new InvalidOperationException("Required privilege SeTcbPrivilege failed");
+            }
+            if (!currentProcess.SetPrivilege("SeDelegateSessionUserImpersonatePrivilege", true))
+            {
+                throw new InvalidOperationException("Required privilege SeDelegateSessionUserImpersonatePrivilege failed");
+            }
+            //if (!currentProcess.SetPrivilege("SeIncreaseQuotaPrivilege", true))
+            //{
+            //    throw new InvalidOperationException("Required privilege SeIncreaseQuotaPrivilege failed");
+            //}
+        }
+
         public void Start()
         {
             // create StartupInfo
@@ -56,6 +75,18 @@ namespace LibSudo
                 lpReserved = null,
                 lpReserved2 = IntPtr.Zero,
                 dwFlags = 0,
+            };
+
+            // create _saProcessAttributes
+            _saProcessAttributes = new Advapi32.SECURITY_ATTRIBUTES
+            {
+                nLength = Marshal.SizeOf(typeof(Advapi32.SECURITY_ATTRIBUTES)),
+            };
+
+            // create _saThreadAttributes
+            _saThreadAttributes = new Advapi32.SECURITY_ATTRIBUTES
+            {
+                nLength = Marshal.SizeOf(typeof(Advapi32.SECURITY_ATTRIBUTES)),
             };
 
             // default window show/hide/maximize
@@ -78,7 +109,7 @@ namespace LibSudo
                 }
             }
 
-            // basic token
+            // token
             var token = CreateToken();
 
             // mandatory policy
@@ -101,28 +132,25 @@ namespace LibSudo
             // create the process
             try
             {
-                
-                if (!Advapi32.CreateProcessAsUser(
-                        token.DangerousGetHandle(),
-                        ExecutablePath,
-                        CommandLine,
-                        ref _saProcessAttributes,
-                        ref _saThreadAttributes,
-                        false,
-                        CreationFlags,
-                        CreateLpEnvironment(),
-                        WorkingDirectory,
-                        ref _startupInfo,
-                        out _processInfo
-                    ))
-                {
-                    throw new Win32Exception();
-                }
+                ExceptionHelper.Check(Advapi32.CreateProcessAsUser(
+                    token,
+                    ExecutablePath,
+                    CommandLine,
+                    ref _saProcessAttributes,
+                    ref _saThreadAttributes,
+                    false,
+                    CreationFlags,
+                    IntPtr.Zero,
+                    WorkingDirectory,
+                    ref _startupInfo,
+                    out _processInfo
+                ));
             }
             finally
             {
+                DestroyToken(token);
                 FreeLpEnvironment();
-                Kernel32.FreeConsole();
+                //Kernel32.FreeConsole();
             }
         }
 
@@ -140,13 +168,39 @@ namespace LibSudo
 
         private DeepDarkWin32Fantasy.SafeTokenHandle GetProcessToken(IntPtr processHandle)
         {
-            Advapi32.OpenProcessToken(processHandle, DeepDarkWin32Fantasy.TOKEN_QUERY, out var ret);
+            // http://lumineerlabs.com/user-impersonation-in-c
+            ExceptionHelper.Check(Advapi32.OpenProcessToken(
+                processHandle,
+                (uint)(TokenAccessLevels.AllAccess),
+                out var ret
+                ));
             return ret;
         }
 
         private DeepDarkWin32Fantasy.SafeTokenHandle CreateToken()
         {
-            return GetProcessToken(Process.GetCurrentProcess().Handle);
+            var baseToken = GetProcessToken(Process.GetCurrentProcess().Handle);
+            var securityAttributes = new Advapi32.SECURITY_ATTRIBUTES()
+            {
+                bInheritHandle = 1,
+                nLength = Marshal.SizeOf(typeof(Advapi32.SECURITY_ATTRIBUTES)),
+                lpSecurityDescriptor = 0,
+            };
+            // https://stackoverflow.com/a/33765296
+            ExceptionHelper.Check(Advapi32.DuplicateTokenEx(
+                baseToken,
+                (uint)(TokenAccessLevels.AllAccess), 
+                ref securityAttributes,
+                Advapi32.SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
+                Advapi32.TOKEN_TYPE.TokenPrimary,
+                out var token
+                ));
+            return token;
+        }
+
+        private void DestroyToken(DeepDarkWin32Fantasy.SafeTokenHandle token)
+        {
+
         }
 
         private IntPtr CreateLpEnvironment()

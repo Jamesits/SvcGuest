@@ -11,18 +11,24 @@ namespace Sudo
     {
         static void Main(string[] args)
         {
-            var sudo = new LibSudo.Sudo
+            LibSudo.Sudo.ElevateSelf();
+
+            using (var sudo = new LibSudo.Sudo
+                   {
+                       //ExecutablePath = @"C:\Windows\system32\cmd.exe",
+                       CommandLine = @"C:\Windows\system32\cmd.exe /K",
+                       NewConsole = true,
+                   })
             {
-                CommandLine = @"C:\Windows\system32\cmd.exe /K"
-            };
-            Debug.WriteLine("sudo object created");
+                Debug.WriteLine("sudo object created");
 
-            sudo.Start();
-            Debug.WriteLine("program executed");
+                sudo.Start();
+                Debug.WriteLine("program executed");
 
-            var ret = sudo.Wait();
-            Debug.WriteLine($"program exited, code: {ret}");
-            Environment.ExitCode = (int)ret;
+                var ret = sudo.Wait();
+                Debug.WriteLine($"program exited, code: {ret}");
+                Environment.ExitCode = (int)ret;
+            }
         }
     }
 }

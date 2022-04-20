@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Sudo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Win32\DeepDarkWin32Fantasy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Win32\Exception.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Win32\PrivilegeManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Win32\UACHelper.cs" />
   </ItemGroup>

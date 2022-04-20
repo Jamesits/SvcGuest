@@ -26,7 +26,7 @@ namespace SvcGuest.ProgramWrappers
 
         private readonly string _launchType;
         private readonly int _launchIndex;
-        private readonly IntPtr _identityToken;
+        private readonly DeepDarkWin32Fantasy.SafeTokenHandle _identityToken;
 
         private bool isChildProcessAlive;
         private Task childProcessWaitTask;
@@ -43,7 +43,7 @@ namespace SvcGuest.ProgramWrappers
         //    Interval = checkInterval,
         //};
 
-        public NativeProgramWrapper(string launchType, int launchIndex, IntPtr identityToken)
+        public NativeProgramWrapper(string launchType, int launchIndex, DeepDarkWin32Fantasy.SafeTokenHandle identityToken)
         {
             _launchType = launchType;
             _launchIndex = launchIndex;
