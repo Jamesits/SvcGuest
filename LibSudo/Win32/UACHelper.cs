@@ -9,7 +9,7 @@ using System.Security.Principal;
 // ReSharper disable CommentTypo
 // ReSharper disable InconsistentNaming
 
-namespace SvcGuest.Win32
+namespace LibSudo.Win32
 {
     /// <summary>
     /// Code from: https://code.msdn.microsoft.com/windowsapps/CSUACSelfElevation-644673d3

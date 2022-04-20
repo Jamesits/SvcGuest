@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 
-namespace SvcGuest.Win32
+namespace LibSudo.Win32
 {
     public class CProcess
     {

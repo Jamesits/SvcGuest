@@ -90,10 +90,8 @@
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="Logging\LogMuxer.cs" />
     <Compile Include="ServiceInterface\Supervisor.cs" />
-    <Compile Include="Win32\DeepDarkWin32Fantasy.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="ProgramWrappers\NativeProgramWrapper.cs" />
-    <Compile Include="Win32\PrivilegeManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgramWrappers\ManagedProgramWrapper.cs" />
     <Compile Include="ProgramWrappers\ProgramWrapper.cs" />
@@ -104,7 +102,6 @@
     <Compile Include="ServiceInterface\Service.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Win32\UACHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -128,6 +125,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <Import Project="..\LibSudo\LibSudo.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.3.2.9\build\Fody.targets" Condition="Exists('..\packages\Fody.3.2.9\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

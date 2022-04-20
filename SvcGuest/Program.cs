@@ -10,7 +10,7 @@ using McMaster.Extensions.CommandLineUtils;
 using SvcGuest.Logging;
 using SvcGuest.ProgramWrappers;
 using SvcGuest.ServiceInterface;
-using SvcGuest.Win32;
+using LibSudo.Win32;
 
 namespace SvcGuest
 {
@@ -33,15 +33,6 @@ namespace SvcGuest
         [Option("--noelevate", CommandOptionType.NoValue, ShowInHelpText = false, Description = "Do not try to elevate automatically if not running as Administrator.")]
         public bool DoNotElevate { get; }
 
-        [Option("--impersonated", CommandOptionType.NoValue, ShowInHelpText = false, Description = "Indicates this is a helper process used to spawn the object process after impersonation.")]
-        public bool IsImpersonatedProcess { get; }
-
-        [Option("--LaunchType", CommandOptionType.SingleValue, ShowInHelpText = false)]
-        public string ExecConfigLaunchType { get; }
-
-        [Option("--LaunchIndex", CommandOptionType.SingleValue, ShowInHelpText = false)]
-        public int ExecConfigIndex { get; }
-
         [Option("-D", CommandOptionType.NoValue, ShowInHelpText = true, Description = "Run the service content in the foreground without actually installing it.")]
         public bool RunOnly { get; }
         // ReSharper restore UnassignedGetOnlyAutoProperty
@@ -63,68 +54,57 @@ namespace SvcGuest
             var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (currentDirectory != null) Directory.SetCurrentDirectory(currentDirectory);
 
-            // If this is a helper process 
-            if (IsImpersonatedProcess)
+            var configOk = true;
+            try
             {
                 LoadConfig();
-                LogMuxer.Instance.Debug("Executing impersonation helper routine");
-                ExecConfig execConfig;
-                switch (ExecConfigLaunchType)
-                {
-                    case "ExecStart":
-                        execConfig = Globals.Config.ExecStart[ExecConfigIndex];
-                        break;
-                    default:
-                        throw new ArgumentException();
-                }
-                Wrapper = new ManagedProgramWrapper(execConfig.ProgramPath, execConfig.Arguments);
-                var hasExited = false;
-                Wrapper.ProgramExited += (sender, eventArgs) => { hasExited = true; };
-                Wrapper.Start();
-                
-                while (!hasExited)
-                {
-                    Thread.Sleep(1000);
-                }
-                return;
+            }
+            catch
+            {
+                configOk = false;
             }
 
-            if (Environment.UserInteractive)
-            {
-                var configOk = true;
-                try
-                {
-                    LoadConfig();
-                }
-                catch
-                {
-                    configOk = false;
-                }
-                
-                LogMuxer.Instance.Debug($"IsElevated: {UACHelper.IsRunAsAdmin()}");
-                LogMuxer.Instance.Debug($"Cmdline: {Environment.CommandLine}");
+            LogMuxer.Instance.Debug($"IsElevated: {UACHelper.IsRunAsAdmin()}");
+            LogMuxer.Instance.Debug($"Cmdline: {Environment.CommandLine}");
 
+            if (!DoNotElevate && !UACHelper.IsProcessElevated()) // TODO: if elevation is required
+            {
+                var elevationSuccess = TryElevate(out var exitCode);
+                if (elevationSuccess)
+                {
+                    // at this point the elevated process will takeover, so we just need to wait and pass over the exit code
+                    Environment.Exit(exitCode);
+                }
+                else
+                {
+                    LogMuxer.Instance.Warning($"UAC request failed, continuing as a regular user");
+                }
+            }
+
+            // main procedure -- as if we have been elevated or elevation is not required
+            if (Environment.UserInteractive) // we are directly invoked by a user
+            {
                 if (!UACHelper.IsRunAsAdmin())
                 {
                     LogMuxer.Instance.Warning("Warning: you may not have sufficient privilege to install services.");
                 }
-                //if (!DoNotElevate && !UACHelper.IsRunAsAdmin())
-                //{
-                //    TryElevate();
-                //}
 
                 if (Install && Uninstall)
                 {
                     LogMuxer.Instance.Fatal("Self-contradictory arguments?");
                     Environment.Exit(1);
-                } else if (Install) {
+                }
+                else if (Install)
+                {
                     if (!configOk)
                     {
                         LogMuxer.Instance.Fatal("Cannot read config");
                         Environment.Exit(1);
                     }
                     InstallService();
-                } else if (Uninstall) {
+                }
+                else if (Uninstall)
+                {
                     if (!configOk)
                     {
                         LogMuxer.Instance.Fatal("Cannot read config");
@@ -178,8 +158,6 @@ namespace SvcGuest
             var config = new Config(configPath);
             Globals.Config = config;
             Globals.ServiceArguments = $"--config {configPath}";
-
-            Debug.WriteLine($"{IsImpersonatedProcess}");
         }
 
         private static void RegisterService(string filename)
@@ -207,10 +185,15 @@ namespace SvcGuest
             }
         }
 
-        // TODO: make it work
-        private static void TryElevate()
+        /// <summary>
+        /// Re-run self as UAC elevated
+        /// </summary>
+        /// <param name="exitCode"></param>
+        /// <returns></returns>
+        private static bool TryElevate(out int exitCode)
         {
-            if (UACHelper.IsRunAsAdmin()) return;
+            exitCode = 0;
+            if (UACHelper.IsRunAsAdmin()) return false;
             var process = new Process()
             {
                 StartInfo = new ProcessStartInfo
@@ -227,12 +210,13 @@ namespace SvcGuest
             {
                 process.Start();
                 process.WaitForExit();
-                Environment.Exit(process.ExitCode);
+                exitCode = process.ExitCode;
+                return true;
             }
             catch
             {
                 LogMuxer.Instance.Error("Elevation failed.");
-                Environment.Exit(1);
+                return false;
             }
         }
 

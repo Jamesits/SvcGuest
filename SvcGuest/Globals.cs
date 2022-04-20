@@ -21,5 +21,7 @@ namespace SvcGuest
         public static string ExecutableDirectory => Path.GetDirectoryName(ExecutablePath);
 
         public static List<ProgramWrapper> ProgramPool { get; } = new List<ProgramWrapper>();
+
+        public const int ThreadSleepMs = 1000;
     }
 }

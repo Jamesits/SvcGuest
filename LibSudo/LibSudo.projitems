@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>ebd4f493-179d-4a19-9726-aad291d66ddd</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>LibSudo</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Sudo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Win32\DeepDarkWin32Fantasy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Win32\PrivilegeManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Win32\UACHelper.cs" />
+  </ItemGroup>
+</Project>

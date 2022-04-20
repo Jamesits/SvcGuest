@@ -12,7 +12,7 @@ using Microsoft.Win32.SafeHandles;
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable StringLiteralTypo
 
-namespace SvcGuest.Win32
+namespace LibSudo.Win32
 {
     internal class DeepDarkWin32Fantasy
     {
@@ -29,11 +29,13 @@ namespace SvcGuest.Win32
             public int dwCheckPoint;
             public int dwWaitHint;
         };
+
         public struct LUID
         {
             public int LowPart;
             public int HighPart;
         }
+
         public struct LUID_AND_ATTRIBUTES
         {
             public LUID Luid;
@@ -51,6 +53,7 @@ namespace SvcGuest.Win32
         {
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
             public char[] e_magic;
+
             public ushort e_cblp;
             public ushort e_cp;
             public ushort e_crlc;
@@ -64,12 +67,16 @@ namespace SvcGuest.Win32
             public ushort e_cs;
             public ushort e_lfarlc;
             public ushort e_ovno;
+
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
             public ushort[] e_res1;
+
             public ushort e_oemid;
             public ushort e_oeminfo;
+
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)]
             public ushort[] e_res2;
+
             public uint e_lfanew;
 
             private string _e_magic => new string(e_magic);
@@ -231,6 +238,7 @@ namespace SvcGuest.Win32
         public const UInt32 TOKEN_ADJUST_DEFAULT = 0x0080;
         public const UInt32 TOKEN_ADJUST_SESSIONID = 0x0100;
         public const UInt32 TOKEN_READ = (STANDARD_RIGHTS_READ | TOKEN_QUERY);
+
         public const UInt32 TOKEN_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED |
                                                 TOKEN_ASSIGN_PRIMARY | TOKEN_DUPLICATE | TOKEN_IMPERSONATE |
                                                 TOKEN_QUERY | TOKEN_QUERY_SOURCE | TOKEN_ADJUST_PRIVILEGES |
@@ -240,8 +248,7 @@ namespace SvcGuest.Win32
         public const Int32 ERROR_INSUFFICIENT_BUFFER = 122;
 
 
-        // Integrity Levels
-
+        // Integrity Level
         public const Int32 SECURITY_MANDATORY_UNTRUSTED_RID = 0x00000000;
         public const Int32 SECURITY_MANDATORY_LOW_RID = 0x00001000;
         public const Int32 SECURITY_MANDATORY_MEDIUM_RID = 0x00002000;
@@ -253,6 +260,39 @@ namespace SvcGuest.Win32
         public const UInt32 WAIT_ABANDONED = 0x00000080;
         public const UInt32 WAIT_OBJECT_0 = 0x00000000;
         public const UInt32 WAIT_TIMEOUT = 0x00000102;
+
+        // Process dwCreationFlag values
+        public const UInt32 DEBUG_PROCESS = 0x00000001;
+        public const UInt32 DEBUG_ONLY_THIS_PROCESS = 0x00000002;
+        public const UInt32 CREATE_SUSPENDED = 0x00000004;
+        public const UInt32 DETACHED_PROCESS = 0x00000008;
+        public const UInt32 CREATE_NEW_CONSOLE = 0x00000010;
+        public const UInt32 NORMAL_PRIORITY_CLASS = 0x00000020;
+        public const UInt32 IDLE_PRIORITY_CLASS = 0x00000040;
+        public const UInt32 HIGH_PRIORITY_CLASS = 0x00000080;
+        public const UInt32 REALTIME_PRIORITY_CLASS = 0x00000100;
+        public const UInt32 CREATE_NEW_PROCESS_GROUP = 0x00000200;
+        public const UInt32 CREATE_UNICODE_ENVIRONMENT = 0x00000400;
+        public const UInt32 CREATE_SEPARATE_WOW_VDM = 0x00000800;
+        public const UInt32 CREATE_SHARED_WOW_VDM = 0x00001000;
+        public const UInt32 CREATE_FORCEDOS = 0x00002000;
+        public const UInt32 BELOW_NORMAL_PRIORITY_CLASS = 0x00004000;
+        public const UInt32 ABOVE_NORMAL_PRIORITY_CLASS = 0x00008000;
+        public const UInt32 INHERIT_PARENT_AFFINITY = 0x00010000;
+        public const UInt32 INHERIT_CALLER_PRIORITY = 0x00020000; // Deprecated
+        public const UInt32 CREATE_PROTECTED_PROCESS = 0x00040000;
+        public const UInt32 EXTENDED_STARTUPINFO_PRESENT = 0x00080000;
+        public const UInt32 PROCESS_MODE_BACKGROUND_BEGIN = 0x00100000;
+        public const UInt32 PROCESS_MODE_BACKGROUND_END = 0x00200000;
+        public const UInt32 CREATE_BREAKAWAY_FROM_JOB = 0x01000000;
+        public const UInt32 CREATE_PRESERVE_CODE_AUTHZ_LEVEL = 0x02000000;
+        public const UInt32 CREATE_DEFAULT_ERROR_MODE = 0x04000000;
+        public const UInt32 CREATE_NO_WINDOW = 0x08000000;
+        public const UInt32 PROFILE_USER = 0x10000000;
+        public const UInt32 PROFILE_KERNEL = 0x20000000;
+        public const UInt32 PROFILE_SERVER = 0x40000000;
+        public const UInt32 CREATE_IGNORE_SYSTEM_DEFAULT = 0x80000000;
+
         #endregion
 
         internal class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
@@ -278,79 +318,132 @@ namespace SvcGuest.Win32
 
         // Delegate type to be used as the Handler Routine for SCCH
         public delegate Boolean ConsoleCtrlDelegate(CtrlTypes CtrlType);
-        
+
     }
+
     internal class Kernel32
     {
-        
         #region Functions
+
         [DllImport("kernel32.dll")]
-        public static extern IntPtr CreateFileA(string lpFleName, uint dwDesiredAccess, int dwShareMode, IntPtr lpSecurityAttributes, int dwCreationDisposition, int dwFlagsAndAttributes, IntPtr hTemplateFile);
+        public static extern IntPtr CreateFileA(string lpFleName, uint dwDesiredAccess, int dwShareMode,
+            IntPtr lpSecurityAttributes, int dwCreationDisposition, int dwFlagsAndAttributes, IntPtr hTemplateFile);
+
         [DllImport("kernel32.dll")]
-        public static extern bool ReadFile(IntPtr hFile, IntPtr Buffer, int nNumberOfBytesToRead, ref int lpNumberOfBytesRead, IntPtr lpOverlapped);
+        public static extern bool ReadFile(IntPtr hFile, IntPtr Buffer, int nNumberOfBytesToRead,
+            ref int lpNumberOfBytesRead, IntPtr lpOverlapped);
+
         [DllImport("kernel32.dll")]
         public static extern bool CloseHandle(IntPtr hObject);
+
         [DllImport("kernel32.dll")]
         public static extern int GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
+
         [DllImport("kernel32.dll")]
         public static extern IntPtr VirtualAlloc(IntPtr lpAddress, int dwSize, int flAllocationType, int flProtect);
+
         [DllImport("kernel32.dll")]
-        public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, int dwSize, int flAllocationType, int flProtect);
+        public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, int dwSize, int flAllocationType,
+            int flProtect);
+
         [DllImport("kernel32.dll")]
         public static extern bool VirtualFree(IntPtr lpAddress, int dwSize, int dwFreeType);
+
         [DllImport("kernel32.dll")]
         public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress, int dwSize, int dwFreeType);
+
         [DllImport("kernel32.dll")]
         public static extern int WaitForSingleObject(IntPtr hObject, uint dwMilliseconds);
+
         [DllImport("kernel32.dll")]
         public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
         [DllImport("kernel32.dll")]
         public static extern bool TerminateProcess(IntPtr hProcess, int ExitStatus);
+
         [DllImport("kernel32.dll")]
         public static extern bool TerminateThread(IntPtr hThread, int ExitStatus);
+
         [DllImport("kernel32.dll")]
         public static extern bool OpenProcessToken(IntPtr hProcess, uint DesiredAccess, ref IntPtr TokenHandle);
+
         [DllImport("KERNELBASE.dll")]
-        public static extern bool AdjustTokenPrivileges(IntPtr TokenHandle, bool DisableAllPrivileges, ref DeepDarkWin32Fantasy.TOKEN_PRIVILEGES NewState, int BufferLength, IntPtr PreviousState, ref int ReturnLength);
+        public static extern bool AdjustTokenPrivileges(IntPtr TokenHandle, bool DisableAllPrivileges,
+            ref DeepDarkWin32Fantasy.TOKEN_PRIVILEGES NewState, int BufferLength, IntPtr PreviousState,
+            ref int ReturnLength);
+
         [DllImport("kernel32.dll")]
-        public static extern bool QueryFullProcessImageNameA(IntPtr hProcess, int dwFlags, byte[] lpExeName, ref int lpdwSize);
+        public static extern bool QueryFullProcessImageNameA(IntPtr hProcess, int dwFlags, byte[] lpExeName,
+            ref int lpdwSize);
+
         [DllImport("kernel32.dll")]
         public static extern IntPtr GetCurrentProcess();
+
         [DllImport("kernel32.dll")]
         public static extern int GetCurrentProcessId();
+
         [DllImport("kernel32.dll")]
         public static extern int GetProcessId(IntPtr hProcess);
+
         [DllImport("kernel32.dll")]
-        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, IntPtr lpBuffer, int nSize, IntPtr lpNumberOfBytesWritten);
+        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, IntPtr lpBuffer, int nSize,
+            IntPtr lpNumberOfBytesWritten);
+
         [DllImport("kernel32.dll")]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+
         [DllImport("kernel32.dll")]
         public static extern IntPtr GetModuleHandleA(string lpModuleName);
+
         [DllImport("kernel32.dll")]
-        public static extern Boolean CreateProcessAsUserA(IntPtr hToken, string lpApplicationName, string lpCommandLine, IntPtr lpProcessAttributes, IntPtr lpThreadAttributes, bool bInheritHandles, int dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, ref DeepDarkWin32Fantasy.STARTUPINFOEX si, ref DeepDarkWin32Fantasy.PROCESS_INFORMATION pi);
+        public static extern Boolean CreateProcessAsUserA(IntPtr hToken, string lpApplicationName, string lpCommandLine,
+            IntPtr lpProcessAttributes, IntPtr lpThreadAttributes, bool bInheritHandles, int dwCreationFlags,
+            IntPtr lpEnvironment, string lpCurrentDirectory, ref DeepDarkWin32Fantasy.STARTUPINFOEX si,
+            ref DeepDarkWin32Fantasy.PROCESS_INFORMATION pi);
+
         [DllImport("kernel32.dll")]
         public static extern void DeleteProcThreadAttributeList(IntPtr lpAttributeList);
+
         [DllImport("kernel32.dll")]
-        public static extern bool InitializeProcThreadAttributeList(IntPtr lpAttributeList, int dwAttributeCount, int dwFlags, ref IntPtr lpSize);
+        public static extern bool InitializeProcThreadAttributeList(IntPtr lpAttributeList, int dwAttributeCount,
+            int dwFlags, ref IntPtr lpSize);
+
         [DllImport("kernel32.dll")]
-        public static extern bool UpdateProcThreadAttribute(IntPtr lpAttributeList, uint dwFlags, IntPtr Attribute, ref IntPtr lpValue, IntPtr cbSize, IntPtr lpPreviousValue, IntPtr lpReturnSize);
+        public static extern bool UpdateProcThreadAttribute(IntPtr lpAttributeList, uint dwFlags, IntPtr Attribute,
+            ref IntPtr lpValue, IntPtr cbSize, IntPtr lpPreviousValue, IntPtr lpReturnSize);
+
         [DllImport("kernel32.dll")]
         public static extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
+
         [DllImport("kernel32.dll")]
-        public static extern bool DuplicateHandle(IntPtr hSourceProcessHandle, IntPtr hSourceHandle, IntPtr TargetProcessHandle, ref IntPtr lpTargetHandle, int dwDesiredAccess, bool bInherithandle, int dwOptions);
+        public static extern bool DuplicateHandle(IntPtr hSourceProcessHandle, IntPtr hSourceHandle,
+            IntPtr TargetProcessHandle, ref IntPtr lpTargetHandle, int dwDesiredAccess, bool bInherithandle,
+            int dwOptions);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool AttachConsole(uint dwProcessId);
 
         [DllImport("kernel32.dll")]
-        public static extern bool SetConsoleCtrlHandler(DeepDarkWin32Fantasy.ConsoleCtrlDelegate HandlerRoutine, bool Add);
+        public static extern bool SetConsoleCtrlHandler(DeepDarkWin32Fantasy.ConsoleCtrlDelegate HandlerRoutine,
+            bool Add);
 
         [DllImport("kernel32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GenerateConsoleCtrlEvent(DeepDarkWin32Fantasy.CtrlTypes dwCtrlEvent, uint dwProcessGroupId);
+        public static extern bool GenerateConsoleCtrlEvent(DeepDarkWin32Fantasy.CtrlTypes dwCtrlEvent,
+            uint dwProcessGroupId);
 
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         public static extern bool FreeConsole();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.U4)]
+        public static extern int WaitForSingleObjectEx(
+            IntPtr hHandle,
+            [MarshalAs(UnmanagedType.U4)] UInt32 dwMilliseconds,
+            bool bAlertable);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetExitCodeProcess(IntPtr hProcess, out uint ExitCode);
 
         #endregion Function
     }
@@ -358,6 +451,7 @@ namespace SvcGuest.Win32
     internal class Advapi32
     {
         #region Structs
+
         [StructLayout(LayoutKind.Sequential)]
         public struct SECURITY_ATTRIBUTES
         {
@@ -392,6 +486,7 @@ namespace SvcGuest.Win32
         public const UInt32 TOKEN_ADJUST_DEFAULT = 0x0080;
         public const UInt32 TOKEN_ADJUST_SESSIONID = 0x0100;
         public const UInt32 TOKEN_READ = (STANDARD_RIGHTS_READ | TOKEN_QUERY);
+
         public const UInt32 TOKEN_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED | TOKEN_ASSIGN_PRIMARY |
                                                 TOKEN_DUPLICATE | TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_QUERY_SOURCE |
                                                 TOKEN_ADJUST_PRIVILEGES | TOKEN_ADJUST_GROUPS | TOKEN_ADJUST_DEFAULT |
@@ -403,15 +498,22 @@ namespace SvcGuest.Win32
             TokenElevationTypeFull,
             TokenElevationTypeLimited
         }
+
         #endregion Structs
+
         #region Functions
+
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern bool SetServiceStatus(IntPtr handle, ref DeepDarkWin32Fantasy.ServiceStatus serviceStatus);
 
         [DllImport("Advapi32.dll")]
-        public static extern bool LookupPrivilegeValueA(string lpSystemName, string lpName, ref DeepDarkWin32Fantasy.LUID lpLuid);
+        public static extern bool LookupPrivilegeValueA(string lpSystemName, string lpName,
+            ref DeepDarkWin32Fantasy.LUID lpLuid);
+
         [DllImport("advapi32.dll")]
-        public static extern bool DuplicateTokenEx(IntPtr hExistingToken, uint dwDesiredAccess, out SECURITY_ATTRIBUTES lpTokenAttributes, SECURITY_IMPERSONATION_LEVEL ImpersonationLevel, TOKEN_TYPE TokenType, out IntPtr phNewToken);
+        public static extern bool DuplicateTokenEx(IntPtr hExistingToken, uint dwDesiredAccess,
+            out SECURITY_ATTRIBUTES lpTokenAttributes, SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
+            TOKEN_TYPE TokenType, out IntPtr phNewToken);
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern bool CreateProcessAsUser(
@@ -527,12 +629,18 @@ namespace SvcGuest.Win32
         /// </returns>
         [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr GetSidSubAuthority(IntPtr pSid, UInt32 nSubAuthority);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool CloseHandle(IntPtr hObject);
+
         #endregion Functions
     }
 
     internal class NtDll
     {
         #region Structs
+
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct SYSTEM_HANDLE
         {
@@ -543,18 +651,30 @@ namespace SvcGuest.Win32
             public IntPtr Object_Pointer;
             public IntPtr GrantedAccess;
         }
+
         #endregion
+
         #region Functions
+
         [DllImport("ntdll.dll")]
         public static extern int NtSuspendProcess(IntPtr hProcess);
+
         [DllImport("ntdll.dll")]
         public static extern int NtResumeProcess(IntPtr hProcess);
+
         [DllImport("ntdll.dll")]
-        public static extern int NtQueryInformationProcess(IntPtr ProcessHandle, int ProcessInformationClass, IntPtr[] ProcessInformation, int ProcessInformationLength, ref int ReturnLength);
+        public static extern int NtQueryInformationProcess(IntPtr ProcessHandle, int ProcessInformationClass,
+            IntPtr[] ProcessInformation, int ProcessInformationLength, ref int ReturnLength);
+
         [DllImport("ntdll.dll")]
-        public static extern int NtQuerySystemInformation(int SystemInformationClass, IntPtr SystemInformation, int SystemInformationLength, ref int ReturnLength);
+        public static extern int NtQuerySystemInformation(int SystemInformationClass, IntPtr SystemInformation,
+            int SystemInformationLength, ref int ReturnLength);
+
         [DllImport("ntdll.dll")]
-        public static extern int RtlCreateUserThread(IntPtr Process, IntPtr ThreadSecurityDescriptor, Boolean CreateSuspended, IntPtr ZeroBits, IntPtr MaximumStackSize, IntPtr CommittedStackSize, IntPtr StartAddress, IntPtr Parameter, ref IntPtr Thread, IntPtr ClientId);
+        public static extern int RtlCreateUserThread(IntPtr Process, IntPtr ThreadSecurityDescriptor,
+            Boolean CreateSuspended, IntPtr ZeroBits, IntPtr MaximumStackSize, IntPtr CommittedStackSize,
+            IntPtr StartAddress, IntPtr Parameter, ref IntPtr Thread, IntPtr ClientId);
+
         #endregion Functions
     }
 }

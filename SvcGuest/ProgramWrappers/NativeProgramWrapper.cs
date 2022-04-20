@@ -6,8 +6,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using LibSudo.Win32;
 using SvcGuest.Logging;
-using SvcGuest.Win32;
 
 namespace SvcGuest.ProgramWrappers
 {
